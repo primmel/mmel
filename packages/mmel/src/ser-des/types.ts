@@ -1,6 +1,10 @@
 import type Resolvable from '../types/Resolvable';
+import type Calculation from '../types/Calculation';
 import type { DataClass, Enum, Registry, Variable } from '../types/data';
+import EventNode from '../types/events';
 import type Figure from '../types/Figure';
+import type Form from '../types/Form';
+import type Gateway from '../types/Gateway';
 import type Link from '../types/Link';
 import type MapProfile from '../types/MapProfile';
 import type Metadata from '../types/Metadata';
@@ -13,10 +17,11 @@ import type { ResolvableApproval } from '../types/Approval';
 import type Reference from '../types/Reference';
 import type Role from '../types/Role';
 import type Standard from '../types/Standard';
+import type StateMachine from '../types/StateMachine';
+import type Subform from '../types/Subform';
+import type Symbol from '../types/Symbol';
 import type Table from '../types/Table';
 import type ViewProfile from '../types/ViewProfile';
-import type Gateway from '../types/Gateway';
-import type EventNode from '../types/events';
 
 
 // Configuration
@@ -93,4 +98,11 @@ export interface ParseContext {
   links: Record<string, Link>;
   mapProfiles: Record<string, MapProfile>;
   viewProfiles: Record<string, ViewProfile>;
+
+  // Primmel extensions (MN 113-7 to 113-10)
+  forms: Record<string, Form>;
+  subforms: Record<string, Subform>;
+  symbols: Record<string, Symbol>;
+  calculations: Record<string, Calculation>;
+  stateMachines: Record<string, StateMachine>;
 }

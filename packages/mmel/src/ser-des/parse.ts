@@ -27,6 +27,12 @@ export default function parse(
     links: {},
     mapProfiles: {},
     viewProfiles: {},
+    // Primmel extensions (MN 113-7 to 113-10)
+    forms: {},
+    subforms: {},
+    symbols: {},
+    calculations: {},
+    stateMachines: {},
   };
 
   const token: Array<string> = tokenize(mmelString);

@@ -43,6 +43,13 @@ import { dumpLink, parseLink } from './link';
 import { dumpMapProfile, parseMapProfile } from './mapProfile';
 import { dumpViewProfile, parseViewProfile } from './viewProfile';
 
+// Primmel extension parsers/dumpers (MN 113-7 to 113-10)
+import { dumpForm, parseForm } from './form';
+import { dumpSubformType as dumpSubform, parseSubform } from './subform';
+import { dumpSymbol, parseSymbol, resolveSymbol } from './symbol';
+import { dumpCalculation, parseCalculation, resolveCalculation } from './calculation';
+import { dumpStateMachine, parseStateMachine } from './stateMachine';
+
 export const PARSER_CONFIG: ParserConfiguration = {
   root: {
     parse: token => ctx => ({ ...ctx, root: token.trim() }),
@@ -141,6 +148,28 @@ export const PARSER_CONFIG: ParserConfiguration = {
     takesID: true,
     parse: parseViewProfile,
   },
+
+  // ── Primmel extension additions (MN 113-7 to 113-10) ─────────────
+  form: {
+    takesID: true,
+    parse: parseForm,
+  },
+  subform: {
+    takesID: true,
+    parse: parseSubform,
+  },
+  symbol: {
+    takesID: true,
+    parse: parseSymbol,
+  },
+  calculation: {
+    takesID: true,
+    parse: parseCalculation,
+  },
+  state_machine: {
+    takesID: true,
+    parse: parseStateMachine,
+  },
 };
 
 export const RESOLVER_CONFIG: ResolverConfiguration = {
@@ -161,6 +190,12 @@ export const RESOLVER_CONFIG: ResolverConfiguration = {
   },
   notes: {
     resolve: resolveNote,
+  },
+  symbols: {
+    resolve: resolveSymbol,
+  },
+  calculations: {
+    resolve: resolveCalculation,
   },
 };
 
@@ -264,4 +299,11 @@ export const DUMPER_CONFIG: DumperConfiguration = {
   links: dumpLink,
   mapProfiles: dumpMapProfile,
   viewProfiles: dumpViewProfile,
+
+  // Primmel extension dumpers
+  forms: dumpForm,
+  subforms: dumpSubform,
+  symbols: dumpSymbol,
+  calculations: dumpCalculation,
+  stateMachines: dumpStateMachine,
 };
