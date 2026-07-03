@@ -58,6 +58,12 @@ export default function resolve(
     links: Object.values(ctx.links),
     mapProfiles: Object.values(ctx.mapProfiles),
     viewProfiles: Object.values(ctx.viewProfiles),
+    // Primmel extensions
+    forms: Object.values(ctx.forms),
+    subforms: Object.values(ctx.subforms),
+    symbols: Object.values(ctx.symbols),
+    calculations: Object.values(ctx.calculations),
+    stateMachines: Object.values(ctx.stateMachines),
     root: null,
   };
 
