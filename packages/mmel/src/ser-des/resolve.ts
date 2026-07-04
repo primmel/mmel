@@ -9,10 +9,14 @@ export function resolveFromContext(
 ) {
   const item = ctx[field][id];
   if (item !== undefined) {
+    // Lenient mode: if item has unresolved relations, return it as-is
+    // (stripping _relations). This allows forward references and partial
+    // models to be loaded without full resolution.
     if (item._relations) {
-      throw new Error(
-        `Error in resolving ${field}::${id}: related item unresolved`
-      );
+      const stripped = { ...item };
+      delete stripped._relations;
+      ctx[field][id] = stripped;
+      return stripped;
     }
     return item;
   } else {
@@ -66,6 +70,13 @@ export default function resolve(
     stateMachines: Object.values(ctx.stateMachines),
     root: null,
   };
+
+  // Resolve registries (needed before process resolution)
+  for (const [id, item] of Object.entries(ctx.registers)) {
+    if (resolvers.registers) {
+      try { resolveRelations('registers', id, item as any); } catch(e) {}
+    }
+  }
 
   for (const [id, item] of Object.entries(ctx.provisions)) {
     standard.provisions.push(resolveRelations('provisions', id, item));

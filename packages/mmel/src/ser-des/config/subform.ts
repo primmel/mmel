@@ -22,7 +22,7 @@ export const parseSubform: Parser = function (id, data) {
         if (command === 'description') {
           result.description = removePackage(t[i++]);
         } else if (command === 'type') {
-          const v = removePackage(t[i++]);
+          const v = t[i++];
           if (v === 'object' || v === 'array') result.shapeType = v;
           else throw new Error(`Parsing error: subform. ID ${id}: type must be object or array (got ${v})`);
         } else if (command === 'parameters') {
@@ -37,7 +37,7 @@ export const parseSubform: Parser = function (id, data) {
             result.fields.push(field);
           }
         } else {
-          throw new Error(`Parsing error: subform. ID ${id}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: subform. ID ${id}: Expecting value for ${command}`);

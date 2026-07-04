@@ -17,9 +17,7 @@ export const parseExclusiveGate: Parser = function (id, data) {
         if (command === 'label') {
           gateway.label = removePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: Exclusive gateway. ID ${id}: Unknown keyword ${command}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(

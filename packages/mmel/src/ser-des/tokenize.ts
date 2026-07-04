@@ -4,6 +4,13 @@ export default function tokenize(x: string): string[] {
   let i = 0;
   while (i < x.length) {
     let char: string = x.charAt(i);
+
+    // ── Comment handling: skip // and # to end of line ──
+    if (char === '#' || (char === '/' && i + 1 < x.length && x.charAt(i + 1) === '/')) {
+      while (i < x.length && x.charAt(i) !== '\n') i++;
+      continue;
+    }
+
     if (!isWhiteSpace(char)) {
       t += char;
       i++;

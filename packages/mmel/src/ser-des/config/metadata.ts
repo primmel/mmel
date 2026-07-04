@@ -9,6 +9,7 @@ export const parseMetadata: Parser = function (token) {
     title: '',
     edition: '',
     namespace: '',
+    shortname: '',
   };
 
   if (token !== '') {
@@ -28,6 +29,8 @@ export const parseMetadata: Parser = function (token) {
           metadata.author = removePackage(t[i++]);
         } else if (keyword === 'namespace') {
           metadata.namespace = removePackage(t[i++]);
+        } else if (keyword === 'shortname') {
+          metadata.shortname = removePackage(t[i++]);
         } else {
           throw new Error(
             'Parsing error: metadata. Unknown keyword ' + keyword

@@ -67,7 +67,7 @@ export const parseStateMachine: Parser = function (entityName, data) {
         } else if (command === 'reference') {
           result.referenceIds.push(...tokenizePackage(t[i++]));
         } else {
-          throw new Error(`Parsing error: state_machine. Entity ${entityName}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: state_machine. Entity ${entityName}: Expecting value for ${command}`);

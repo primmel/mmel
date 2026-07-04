@@ -37,7 +37,7 @@ export const parseCalculation: Parser = function (id, data) {
         } else if (command === 'output') {
           result.output = parseOutput(removePackage(t[i++]), id);
         } else {
-          throw new Error(`Parsing error: calculation. ID ${id}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: calculation. ID ${id}: Expecting value for ${command}`);

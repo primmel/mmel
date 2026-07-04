@@ -41,6 +41,11 @@ export default function parse(
     const keyword: string = token[i++];
     const cfg = parsers[keyword];
 
+    if (!cfg) {
+      // Skip unknown keywords (forward compatibility)
+      continue;
+    }
+
     let updateCtx: (ctx: ParseContext) => ParseContext;
     if (cfg.takesID) {
       updateCtx = cfg.parse(token[i++], token[i++]);
