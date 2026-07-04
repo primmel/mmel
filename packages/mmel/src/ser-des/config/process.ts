@@ -48,9 +48,7 @@ export const parseProcess: Parser = function (id, data) {
         } else if (keyword === 'reference_data_registry') {
           result._relations.input = tokenizePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: process. ID ${id}: Unknown keyword ${keyword}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(

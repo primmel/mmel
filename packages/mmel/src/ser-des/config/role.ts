@@ -15,9 +15,7 @@ export const parseRole: Parser = (id: string, data: string) => {
       if (keyword === 'name') {
         role.name = removePackage(t[i++]);
       } else {
-        throw new Error(
-          `Parsing error: role. ID ${id}: Unknown keyword ${keyword}`
-        );
+        i++; // forward-compatible: skip unknown keyword value
       }
     } else {
       throw new Error(

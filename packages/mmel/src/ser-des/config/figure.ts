@@ -16,7 +16,7 @@ export const parseFigure: Parser = function (id, data) {
         } else if (command === 'src') {
           result.src = removePackage(t[i++]);
         } else {
-          throw new Error(`Parsing error: figure. ID ${id}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: figure. ID ${id}: Expecting value for ${command}`);

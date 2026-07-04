@@ -39,9 +39,7 @@ export const parseSignalCatchEvent: Parser = function (id, data) {
         if (command === 'catch') {
           result.signal = removePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: Signal Catch Event. ID ${id}: Unknown keyword ${command}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(
@@ -89,9 +87,7 @@ export const parseTimerEvent: Parser = function (id, data) {
         } else if (command === 'para') {
           result.para = removePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: Timer Event. ID ${id}: Unknown keyword ${command}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(

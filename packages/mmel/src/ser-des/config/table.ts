@@ -32,7 +32,7 @@ export const parseTable: Parser = function (id, data) {
           const dataBlock = removePackage(t[i++]);
           result.data = parseTableData(dataBlock);
         } else {
-          throw new Error(`Parsing error: table. ID ${id}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: table. ID ${id}: Expecting value for ${command}`);

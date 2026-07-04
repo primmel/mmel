@@ -19,9 +19,7 @@ export const parseReference: Parser = (id: string, data: string) => {
         } else if (keyword === 'clause') {
           ref.clause = removePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: reference. ID ${id}: Unknown keyword ${keyword}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(

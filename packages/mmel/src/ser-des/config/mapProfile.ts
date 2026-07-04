@@ -25,7 +25,7 @@ export const parseMapProfile: Parser = function (namespace, data) {
             if (m) result.mappings[m[1]] = m[2];
           }
         } else {
-          throw new Error(`Parsing error: map_profile. NS ${namespace}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: map_profile. NS ${namespace}: Expecting value for ${command}`);

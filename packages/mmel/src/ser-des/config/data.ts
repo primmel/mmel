@@ -55,9 +55,7 @@ const parseEnumValue = (id: string, data: string) => {
         if (command === 'definition') {
           ev.value = removePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: enum value. ID ${id}: Unknown keyword ${command}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(
@@ -90,9 +88,7 @@ export const parseRegistry: Parser = function (id, data) {
         } else if (command === 'data_class') {
           result._relations.data = t[i++];
         } else {
-          throw new Error(
-            `Parsing error: registry. ID ${id}: Unknown keyword ${command}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(
@@ -174,9 +170,8 @@ export const parseDataAttribute: Parser = function (basic, details) {
         } else if (keyword === 'satisfy') {
           result.satisfy = tokenizePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: approval. ID ${result.id}: Unknown keyword ${keyword}`
-          );
+          // Forward-compatible: skip unknown keywords (e.g., cardinality, unit, default)
+          i++;
         }
       } else {
         throw new Error(

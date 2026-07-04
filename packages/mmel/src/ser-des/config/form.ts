@@ -52,7 +52,7 @@ export const parseForm: Parser = function (id, data) {
         } else if (command === 'reference') {
           result.referenceIds = tokenizePackage(t[i++]);
         } else {
-          throw new Error(`Parsing error: form. ID ${id}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: form. ID ${id}: Expecting value for ${command}`);

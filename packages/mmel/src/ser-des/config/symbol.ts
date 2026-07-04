@@ -48,7 +48,7 @@ export const parseSymbol: Parser = function (id, data) {
         } else if (command === 'reference') {
           result._relations.ref = tokenizePackage(t[i++]);
         } else {
-          throw new Error(`Parsing error: symbol. ID ${id}: Unknown keyword ${command}`);
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(`Parsing error: symbol. ID ${id}: Expecting value for ${command}`);

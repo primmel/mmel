@@ -39,9 +39,7 @@ export const parseApproval: Parser = function (id, data) {
         } else if (keyword === 'reference') {
           result._relations.ref = tokenizePackage(t[i++]);
         } else {
-          throw new Error(
-            `Parsing error: approval. ID ${id}: Unknown keyword ${keyword}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(

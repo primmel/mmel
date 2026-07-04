@@ -38,9 +38,7 @@ export const parseSubprocess: Parser = function (id, data) {
         } else if (keyword === 'data') {
           result = parseData(removePackage(t[i++]))(result);
         } else {
-          throw new Error(
-            `Parsing error: subprocess. ID ${id}: Unknown keyword ${keyword}`
-          );
+          i++; // forward-compatible: skip unknown keyword value
         }
       } else {
         throw new Error(

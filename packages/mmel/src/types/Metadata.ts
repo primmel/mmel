@@ -4,4 +4,5 @@ export default interface Metadata {
   title: string;
   edition: string;
   namespace: string;
+  shortname: string;
 }
