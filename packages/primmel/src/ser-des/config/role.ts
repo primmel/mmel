@@ -23,7 +23,10 @@ export const parseRole: Parser = (id: string, data: string) => {
       );
     }
   }
-  return ctx => ({ ...ctx, roles: { ...ctx.roles, [id]: role } });
+  return ctx => {
+    ctx.roles[id] = role;
+    return ctx;
+  };
 };
 
 export const dumpRole: Dumper<Role> = function (role) {

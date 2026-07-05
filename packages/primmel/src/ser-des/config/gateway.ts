@@ -26,13 +26,17 @@ export const parseExclusiveGate: Parser = function (id, data) {
       }
     }
   }
-  return ctx => ({ ...ctx, gateways: { ...ctx.gateways, [id]: gateway } });
+  return ctx => {
+    ctx.gateways[id] = gateway;
+    return ctx;
+  };
 };
 
 export const dumpGateway: Dumper<Gateway> = function (gate) {
   if (gate.gatewayType === 'exclusive_gateway') {
     return dumpEGate(gate as ExclusiveGateway);
   }
+  return '';
 };
 
 function dumpEGate(egate: ExclusiveGateway) {

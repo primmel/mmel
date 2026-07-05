@@ -1,4 +1,3 @@
-// @ts-nocheck
 // ─────────────────────────────────────────────────────────────────────
 // Include preprocessor.
 //
@@ -9,10 +8,10 @@
 // same convention as C preprocessor #include and AsciiDoc include::.
 // ─────────────────────────────────────────────────────────────────────
 
-const { readFileSync, existsSync } = require('fs')
-const { resolve, dirname, isAbsolute } = require('path')
+import { readFileSync, existsSync } from 'fs';
+import { resolve, dirname, isAbsolute } from 'path';
 
-const INCLUDE_RE = /^include\s+"([^"]+)"/gm
+const INCLUDE_RE = /^include\s+"([^"]+)"/gm;
 
 /**
  * Preprocess include directives in a .mmel file.
@@ -27,34 +26,36 @@ const INCLUDE_RE = /^include\s+"([^"]+)"/gm
  */
 export function preprocessIncludes(
   filePath: string,
-  _seen: Set<string> = new Set(),
+  _seen: Set<string> = new Set()
 ): string {
-  const absPath = resolve(filePath)
+  const absPath = resolve(filePath);
 
   if (_seen.has(absPath)) {
     throw new Error(
-      `Include cycle detected: ${absPath} (chain: ${[..._seen, absPath].map(s => s.split('/').pop()).join(' → ')})`
-    )
+      `Include cycle detected: ${absPath} (chain: ${[..._seen, absPath]
+        .map(s => s.split('/').pop())
+        .join(' → ')})`
+    );
   }
-  _seen.add(absPath)
+  _seen.add(absPath);
 
   if (!existsSync(absPath)) {
-    throw new Error(`Include file not found: ${absPath}`)
+    throw new Error(`Include file not found: ${absPath}`);
   }
 
-  const content = readFileSync(absPath, 'utf8')
-  const dir = dirname(absPath)
+  const content = readFileSync(absPath, 'utf8');
+  const dir = dirname(absPath);
 
   // Replace each include directive with the preprocessed content of
   // the referenced file
-  return content.replace(INCLUDE_RE, (match, includePath: string) => {
+  return content.replace(INCLUDE_RE, (_match: string, includePath: string) => {
     const resolved = isAbsolute(includePath)
       ? includePath
-      : resolve(dir, includePath)
+      : resolve(dir, includePath);
 
     // Add .mmel extension if not present
-    const withExt = resolved.endsWith('.mmel') ? resolved : `${resolved}.mmel`
+    const withExt = resolved.endsWith('.mmel') ? resolved : `${resolved}.mmel`;
 
-    return preprocessIncludes(withExt, new Set(_seen))
-  })
+    return preprocessIncludes(withExt, new Set(_seen));
+  });
 }

@@ -23,39 +23,53 @@ export const parseSubform: Parser = function (id, data) {
           result.description = removePackage(t[i++]);
         } else if (command === 'type') {
           const v = t[i++];
-          if (v === 'object' || v === 'array') result.shapeType = v;
-          else throw new Error(`Parsing error: subform. ID ${id}: type must be object or array (got ${v})`);
+          if (v === 'object' || v === 'array') {
+            result.shapeType = v;
+          } else {
+            throw new Error(
+              `Parsing error: subform. ID ${id}: type must be object or array (got ${v})`
+            );
+          }
         } else if (command === 'parameters') {
-          result.parameters = parseParameters(removePackage(t[i++]), id);
+          result.parameters = parseParameters(removePackage(t[i++]));
         } else if (command === 'field') {
           // field is followed by `name [: type] { ... }`
           const fieldName = t[i++];
           if (i < t.length) {
             const fieldBlock = removePackage(t[i++]);
             // Determine if there's a type spec between name and {
-            const field = parseField(fieldName, fieldBlock, true);
+            const field = parseField(fieldName, fieldBlock);
             result.fields.push(field);
           }
         } else {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: subform. ID ${id}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: subform. ID ${id}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, subforms: { ...ctx.subforms, [id]: result } });
+  return ctx => {
+    ctx.subforms[id] = result;
+    return ctx;
+  };
 };
 
-function parseParameters(block: string, parentId: string): ParameterDecl[] {
+function parseParameters(block: string): ParameterDecl[] {
   const params: ParameterDecl[] = [];
   const t = tokenizePackage(block);
   let i = 0;
   while (i < t.length) {
     const name = t[i++];
-    if (i >= t.length) break;
-    if (t[i] === ':') i++;
+    if (i >= t.length) {
+      break;
+    }
+    if (t[i] === ':') {
+      i++;
+    }
     const type = i < t.length ? t[i++] : 'integer';
     let description = '';
     let hasDefault = false;
@@ -68,8 +82,9 @@ function parseParameters(block: string, parentId: string): ParameterDecl[] {
       while (j < pt.length) {
         const cmd = pt[j++];
         if (j < pt.length) {
-          if (cmd === 'description') description = removePackage(pt[j++]);
-          else if (cmd === 'default') {
+          if (cmd === 'description') {
+            description = removePackage(pt[j++]);
+          } else if (cmd === 'default') {
             defaultValue = removePackage(pt[j++]);
             hasDefault = true;
           } else if (cmd === 'mapping') {
@@ -81,7 +96,9 @@ function parseParameters(block: string, parentId: string): ParameterDecl[] {
             while (k < mt.length) {
               const key = mt[k++];
               if (k < mt.length) {
-                if (mt[k] === ':') k++;
+                if (mt[k] === ':') {
+                  k++;
+                }
                 if (k < mt.length) {
                   mapping[key] = removePackage(mt[k++]);
                 }
@@ -98,7 +115,7 @@ function parseParameters(block: string, parentId: string): ParameterDecl[] {
   return params;
 }
 
-function parseField(name: string, block: string, skipTypeSpec: boolean): FormField {
+function parseField(name: string, block: string): FormField {
   // Simplified: capture properties without full type-spec parsing
   const field: FormField = {
     name,
@@ -128,21 +145,29 @@ function parseField(name: string, block: string, skipTypeSpec: boolean): FormFie
     while (i < t.length) {
       const cmd = t[i++];
       if (i < t.length) {
-        if (cmd === 'label') field.label = removePackage(t[i++]);
-        else if (cmd === 'definition') field.definition = removePackage(t[i++]);
-        else if (cmd === 'unit') field.unit = removePackage(t[i++]);
-        else if (cmd === 'required') field.required = removePackage(t[i++]) === 'true';
-        else if (cmd === 'measurement_method') field.measurementMethod = removePackage(t[i++]);
-        else if (cmd === 'calculation') field.calculationId = removePackage(t[i++]);
-        else if (cmd === 'calculation_bindings') {
+        if (cmd === 'label') {
+          field.label = removePackage(t[i++]);
+        } else if (cmd === 'definition') {
+          field.definition = removePackage(t[i++]);
+        } else if (cmd === 'unit') {
+          field.unit = removePackage(t[i++]);
+        } else if (cmd === 'required') {
+          field.required = removePackage(t[i++]) === 'true';
+        } else if (cmd === 'measurement_method') {
+          field.measurementMethod = removePackage(t[i++]);
+        } else if (cmd === 'calculation') {
+          field.calculationId = removePackage(t[i++]);
+        } else if (cmd === 'calculation_bindings') {
           // Skip the binding block (raw)
           removePackage(t[i++]);
-        } else if (cmd === 'derivation') field.derivation = removePackage(t[i++]);
-        else if (cmd === 'evaluation') {
+        } else if (cmd === 'derivation') {
+          field.derivation = removePackage(t[i++]);
+        } else if (cmd === 'evaluation') {
           // Skip evaluation block
           removePackage(t[i++]);
-        } else if (cmd === 'values') field.values = tokenizePackage(t[i++]);
-        else if (cmd === 'default') {
+        } else if (cmd === 'values') {
+          field.values = tokenizePackage(t[i++]);
+        } else if (cmd === 'default') {
           field.defaultValue = removePackage(t[i++]);
           field.hasDefault = true;
         } else if (cmd === 'min_items' || cmd === 'max_items') {
@@ -166,16 +191,24 @@ function parseField(name: string, block: string, skipTypeSpec: boolean): FormFie
 export const dumpSubformType: Dumper<Subform> = function (sf) {
   let out = 'subform ' + sf.id + ' {\n';
   out += '  type ' + sf.shapeType + '\n';
-  if (sf.description) out += '  description "' + sf.description + '"\n';
+  if (sf.description) {
+    out += '  description "' + sf.description + '"\n';
+  }
   if (sf.parameters.length > 0) {
     out += '  parameters {\n';
     for (const p of sf.parameters) {
       let line = '    ' + p.name + ' : ' + p.type + ' { ';
-      if (p.description) line += 'description "' + p.description + '" ';
-      if (p.hasDefault) line += 'default ' + p.defaultValue + ' ';
+      if (p.description) {
+        line += 'description "' + p.description + '" ';
+      }
+      if (p.hasDefault) {
+        line += 'default ' + p.defaultValue + ' ';
+      }
       if (p.mapping) {
         line += 'mapping { ';
-        for (const [k, v] of Object.entries(p.mapping)) line += k + ': ' + v + ' ';
+        for (const [k, v] of Object.entries(p.mapping)) {
+          line += k + ': ' + v + ' ';
+        }
         line += '} ';
       }
       line += '}\n';
@@ -185,9 +218,15 @@ export const dumpSubformType: Dumper<Subform> = function (sf) {
   }
   for (const f of sf.fields) {
     out += '  field ' + f.name + ' { ';
-    if (f.label) out += 'label "' + f.label + '" ';
-    if (f.unit) out += 'unit "' + f.unit + '" ';
-    if (f.required) out += 'required true ';
+    if (f.label) {
+      out += 'label "' + f.label + '" ';
+    }
+    if (f.unit) {
+      out += 'unit "' + f.unit + '" ';
+    }
+    if (f.required) {
+      out += 'required true ';
+    }
     out += '}\n';
   }
   out += '}\n';

@@ -2,6 +2,9 @@ import Approval, { ResolvableApproval } from '../../types/Approval';
 import { resolveFromContext } from '../resolve';
 import { removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser, Resolver } from '../types';
+import type { Registry } from '../../types/data';
+import type Reference from '../../types/Reference';
+import type Role from '../../types/Role';
 
 export const parseApproval: Parser = function (id, data) {
   const result: ResolvableApproval = {
@@ -43,32 +46,40 @@ export const parseApproval: Parser = function (id, data) {
         }
       } else {
         throw new Error(
-          `Parsing error: process. ID ${id}: Expecting value for ${keyword}`
+          `Parsing error: approval. ID ${id}: Expecting value for ${keyword}`
         );
       }
     }
   }
-  return ctx => ({ ...ctx, approvals: { ...ctx.approvals, [id]: result } });
+  return ctx => {
+    ctx.approvals[id] = result;
+    return ctx;
+  };
 };
 
 export const resolveApproval: Resolver<Approval, ResolvableApproval> =
   function (ctx, unresolved) {
-    const p = { ...unresolved };
-    if (unresolved._relations.actor !== '') {
-      p.actor = resolveFromContext(ctx, 'roles', unresolved._relations.actor);
+    const { _relations, ...rest } = unresolved;
+    const p: Approval = { ...rest, records: [], ref: [] };
+    if (_relations.actor !== '') {
+      p.actor =
+        resolveFromContext<Role>(ctx, 'roles', _relations.actor) ?? null;
     }
-    if (unresolved._relations.actor !== '') {
-      p.approver = resolveFromContext(
-        ctx,
-        'roles',
-        unresolved._relations.approver
-      );
+    if (_relations.approver !== '') {
+      p.approver =
+        resolveFromContext<Role>(ctx, 'roles', _relations.approver) ?? null;
     }
-    for (const id of unresolved._relations.records) {
-      p.records.push(resolveFromContext(ctx, 'registers', id));
+    for (const id of _relations.records) {
+      const r = resolveFromContext<Registry>(ctx, 'registers', id);
+      if (r !== undefined) {
+        p.records.push(r);
+      }
     }
-    for (const id of unresolved._relations.ref) {
-      p.ref.push(resolveFromContext(ctx, 'registers', id));
+    for (const id of _relations.ref) {
+      const r = resolveFromContext<Reference>(ctx, 'references', id);
+      if (r !== undefined) {
+        p.ref.push(r);
+      }
     }
     return p;
   };

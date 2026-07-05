@@ -19,12 +19,17 @@ export const parseFigure: Parser = function (id, data) {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: figure. ID ${id}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: figure. ID ${id}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, figures: { ...ctx.figures, [id]: result } });
+  return ctx => {
+    ctx.figures[id] = result;
+    return ctx;
+  };
 };
 
 export const dumpFigure: Dumper<Figure> = function (f) {

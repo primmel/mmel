@@ -6,8 +6,13 @@ export default function tokenize(x: string): string[] {
     let char: string = x.charAt(i);
 
     // ── Comment handling: skip // and # to end of line ──
-    if (char === '#' || (char === '/' && i + 1 < x.length && x.charAt(i + 1) === '/')) {
-      while (i < x.length && x.charAt(i) !== '\n') i++;
+    if (
+      char === '#' ||
+      (char === '/' && i + 1 < x.length && x.charAt(i + 1) === '/')
+    ) {
+      while (i < x.length && x.charAt(i) !== '\n') {
+        i++;
+      }
       continue;
     }
 

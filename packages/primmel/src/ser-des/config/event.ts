@@ -20,7 +20,10 @@ export const parseEndEvent: Parser = function (id, data) {
       );
     }
   }
-  return ctx => ({ ...ctx, events: { ...ctx.events, [id]: result } });
+  return ctx => {
+    ctx.events[id] = result;
+    return ctx;
+  };
 };
 
 export const parseSignalCatchEvent: Parser = function (id, data) {
@@ -48,7 +51,10 @@ export const parseSignalCatchEvent: Parser = function (id, data) {
       }
     }
   }
-  return ctx => ({ ...ctx, events: { ...ctx.events, [id]: result } });
+  return ctx => {
+    ctx.events[id] = result;
+    return ctx;
+  };
 };
 
 export const parseStartEvent: Parser = function (id, data) {
@@ -65,7 +71,10 @@ export const parseStartEvent: Parser = function (id, data) {
       );
     }
   }
-  return ctx => ({ ...ctx, events: { ...ctx.events, [id]: result } });
+  return ctx => {
+    ctx.events[id] = result;
+    return ctx;
+  };
 };
 
 export const parseTimerEvent: Parser = function (id, data) {
@@ -96,7 +105,10 @@ export const parseTimerEvent: Parser = function (id, data) {
       }
     }
   }
-  return ctx => ({ ...ctx, events: { ...ctx.events, [id]: result } });
+  return ctx => {
+    ctx.events[id] = result;
+    return ctx;
+  };
 };
 
 export const dumpEvent: Dumper<EventNode> = function (event) {
@@ -112,6 +124,7 @@ export const dumpEvent: Dumper<EventNode> = function (event) {
   if (event.eventType === 'timer') {
     return dumpTimerEvent(event as TimerEvent);
   }
+  return '';
 };
 
 function dumpEndEvent(end: EndEvent): string {

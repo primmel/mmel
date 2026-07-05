@@ -2,9 +2,16 @@ import type { Dumper, Parser, Resolver } from '../types';
 import { removePackage, tokenizePackage } from '../tokenize';
 import type Symbol from '../../types/Symbol';
 import type { SymbolType, ResolvableSymbol } from '../../types/Symbol';
+import type Reference from '../../types/Reference';
 import { resolveFromContext } from '../resolve';
 
-const VALID_SYMBOL_TYPES: SymbolType[] = ['number', 'integer', 'string', 'boolean', 'enum'];
+const VALID_SYMBOL_TYPES: SymbolType[] = [
+  'number',
+  'integer',
+  'string',
+  'boolean',
+  'enum',
+];
 
 export const parseSymbol: Parser = function (id, data) {
   const result: ResolvableSymbol = {
@@ -35,7 +42,9 @@ export const parseSymbol: Parser = function (id, data) {
           const v = t[i++] as SymbolType;
           if (!VALID_SYMBOL_TYPES.includes(v)) {
             throw new Error(
-              `Parsing error: symbol. ID ${id}: Unknown type ${v} (valid: ${VALID_SYMBOL_TYPES.join(', ')})`
+              `Parsing error: symbol. ID ${id}: Unknown type ${v} (valid: ${VALID_SYMBOL_TYPES.join(
+                ', '
+              )})`
             );
           }
           result.type = v;
@@ -51,33 +60,54 @@ export const parseSymbol: Parser = function (id, data) {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: symbol. ID ${id}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: symbol. ID ${id}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, symbols: { ...ctx.symbols, [id]: result } });
+  return ctx => {
+    ctx.symbols[id] = result;
+    return ctx;
+  };
 };
 
-export const resolveSymbol: Resolver<Symbol, ResolvableSymbol> = function (ctx, unresolved) {
-  const resolved: Symbol = { ...unresolved, ref: [] };
+export const resolveSymbol: Resolver<Symbol, ResolvableSymbol> = function (
+  ctx,
+  unresolved
+) {
+  const ref: Reference[] = [];
   for (const id of unresolved._relations.ref) {
-    resolved.ref.push(resolveFromContext(ctx, 'references', id));
+    const r = resolveFromContext<Reference>(ctx, 'references', id);
+    if (r !== undefined) {
+      ref.push(r);
+    }
   }
-  return resolved;
+  return { ...unresolved, ref };
 };
 
 export const dumpSymbol: Dumper<Symbol> = function (s) {
   let out = 'symbol ' + s.id + ' {\n';
   out += '  name "' + s.name + '"\n';
-  if (s.definition) out += '  definition "' + s.definition + '"\n';
+  if (s.definition) {
+    out += '  definition "' + s.definition + '"\n';
+  }
   out += '  type ' + s.type + '\n';
-  if (s.unit && s.unit !== '1') out += '  unit "' + s.unit + '"\n';
-  if (s.latex) out += '  latex "' + s.latex + '"\n';
-  if (s.values.length > 0) out += '  values ' + s.values.join(' ') + '\n';
+  if (s.unit && s.unit !== '1') {
+    out += '  unit "' + s.unit + '"\n';
+  }
+  if (s.latex) {
+    out += '  latex "' + s.latex + '"\n';
+  }
+  if (s.values.length > 0) {
+    out += '  values ' + s.values.join(' ') + '\n';
+  }
   if (s.ref.length > 0) {
     out += '  reference {\n';
-    for (const r of s.ref) out += '    ' + r.id + '\n';
+    for (const r of s.ref) {
+      out += '    ' + r.id + '\n';
+    }
     out += '  }\n';
   }
   out += '}\n';

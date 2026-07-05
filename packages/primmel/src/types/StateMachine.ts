@@ -1,5 +1,4 @@
 import Resolvable from './Resolvable';
-import Reference from './Reference';
 
 export interface StateMachineState {
   name: string;

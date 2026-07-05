@@ -2,6 +2,10 @@ import Process, { ResolvableProcess } from '../../types/process';
 import { resolveFromContext } from '../resolve';
 import { removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser, Resolver } from '../types';
+import type { Registry } from '../../types/data';
+import type Provision from '../../types/Provision';
+import type Role from '../../types/Role';
+import type { Subprocess } from '../../types/flow';
 
 export const parseProcess: Parser = function (id, data) {
   const result: ResolvableProcess = {
@@ -40,9 +44,7 @@ export const parseProcess: Parser = function (id, data) {
         } else if (keyword === 'validate_provision') {
           result._relations.provision = tokenizePackage(t[i++]);
         } else if (keyword === 'validate_measurement') {
-          result.measure = tokenizePackage(t[i++]).flatMap(x =>
-            removePackage(x)
-          );
+          result.measure = tokenizePackage(t[i++]).map(x => removePackage(x));
         } else if (keyword === 'output') {
           result._relations.output = tokenizePackage(t[i++]);
         } else if (keyword === 'reference_data_registry') {
@@ -57,28 +59,49 @@ export const parseProcess: Parser = function (id, data) {
       }
     }
   }
-  return ctx => ({ ...ctx, processes: { ...ctx.processes, [id]: result } });
+  return ctx => {
+    ctx.processes[id] = result;
+    return ctx;
+  };
 };
 
 export const resolveProcess: Resolver<Process, ResolvableProcess> = function (
   ctx,
   unresolved
 ) {
-  const p = { ...unresolved };
-  for (const id of unresolved._relations.output) {
-    p.output.push(resolveFromContext(ctx, 'registers', id));
+  const { _relations, ...rest } = unresolved;
+  const p: Process = {
+    ...rest,
+    output: [],
+    input: [],
+    provision: [],
+    actor: null,
+    page: null,
+  };
+  for (const id of _relations.output) {
+    const r = resolveFromContext<Registry>(ctx, 'registers', id);
+    if (r !== undefined) {
+      p.output.push(r);
+    }
   }
-  for (const id of unresolved._relations.input) {
-    p.input.push(resolveFromContext(ctx, 'registers', id));
+  for (const id of _relations.input) {
+    const r = resolveFromContext<Registry>(ctx, 'registers', id);
+    if (r !== undefined) {
+      p.input.push(r);
+    }
   }
-  for (const id of unresolved._relations.provision) {
-    p.provision.push(resolveFromContext(ctx, 'provisions', id));
+  for (const id of _relations.provision) {
+    const r = resolveFromContext<Provision>(ctx, 'provisions', id);
+    if (r !== undefined) {
+      p.provision.push(r);
+    }
   }
-  if (unresolved._relations.actor !== '') {
-    p.actor = resolveFromContext(ctx, 'roles', unresolved._relations.actor);
+  if (_relations.actor !== '') {
+    p.actor = resolveFromContext<Role>(ctx, 'roles', _relations.actor) ?? null;
   }
-  if (unresolved._relations.page !== '') {
-    p.page = resolveFromContext(ctx, 'pages', unresolved._relations.page);
+  if (_relations.page !== '') {
+    const page = resolveFromContext<Subprocess>(ctx, 'pages', _relations.page);
+    p.page = page ?? null;
   }
   return p;
 };

@@ -44,7 +44,10 @@ export const parseMetadata: Parser = function (token) {
     }
   }
 
-  return ctx => ({ ...ctx, metadata });
+  return ctx => {
+    ctx.metadata = metadata;
+    return ctx;
+  };
 };
 
 export const dumpMetadata: Dumper<Metadata> = function (meta) {

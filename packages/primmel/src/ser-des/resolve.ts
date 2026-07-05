@@ -1,125 +1,130 @@
 import Standard from '../types/Standard';
 import { ParseContext, ResolverConfiguration } from './types';
-import { Resolvable } from '../types/Resolvable';
+import Metadata from '../types/Metadata';
 
-export function resolveFromContext(
+const EMPTY_META: Metadata = {
+  schema: '',
+  author: '',
+  title: '',
+  edition: '',
+  namespace: '',
+  shortname: '',
+};
+
+/**
+ * Look up an item by ID in a ParseContext table.
+ *
+ * Returns the item (with `_relations` stripped if it had any) or `undefined`
+ * if the ID is not present. Lenient by design — callers decide whether an
+ * undefined miss is an error.
+ */
+export function resolveFromContext<T>(
   ctx: ParseContext,
   field: keyof ParseContext,
   id: string
-) {
-  const item = ctx[field][id];
-  if (item !== undefined) {
-    // Lenient mode: if item has unresolved relations, return it as-is
-    // (stripping _relations). This allows forward references and partial
-    // models to be loaded without full resolution.
-    if (item._relations) {
-      const stripped = { ...item };
-      delete stripped._relations;
-      ctx[field][id] = stripped;
-      return stripped;
-    }
-    return item;
-  } else {
-    throw new Error(`Error in resolving ${field}::${id}: not found`);
+): T | undefined {
+  const table = ctx[field] as unknown as Record<string, T>;
+  if (table === null || table === undefined) {
+    return undefined;
   }
+  const item = table[id];
+  if (item === undefined) {
+    return undefined;
+  }
+
+  const anyItem = item as unknown as { _relations?: unknown };
+  if (anyItem._relations) {
+    const stripped = { ...item };
+    delete (stripped as unknown as { _relations?: unknown })._relations;
+    table[id] = stripped;
+    return stripped;
+  }
+  return item;
 }
 
+/**
+ * Resolve a ParseContext into a typed Standard.
+ *
+ * For each registered resolver (RESOLVER_CONFIG), iterate every parsed item
+ * of that construct, run the resolver, and append the result to the matching
+ * Standard field. Fields without a resolver are passed through directly.
+ *
+ * Lenient: missing references inside a resolver are dropped (not thrown).
+ * The partially-resolved item is still returned.
+ */
 export default function resolve(
   ctx: ParseContext,
   resolvers: ResolverConfiguration
 ): Standard {
-  function resolveRelations<T>(
-    partName: keyof typeof resolvers,
-    id: string,
-    item: Resolvable<T, any>
-  ): T {
-    const resolvedItem = resolvers[partName].resolve(ctx, item);
-    // Mark item as resolved
-    delete resolvedItem._relations;
-    // Update context with resolved item
-    ctx[partName][id] = resolvedItem;
-    return resolvedItem;
-  }
-
   const standard: Standard = {
-    meta: ctx.metadata,
+    meta: ctx.metadata ?? EMPTY_META,
     roles: Object.values(ctx.roles),
     provisions: [],
-    pages: Object.values(ctx.pages).map(p => (p as any).content ?? p),
+    pages: [],
     processes: [],
-    dataclasses: Object.values(ctx.dataClasses),
-    regs: Object.values(ctx.registers),
+    dataclasses: [],
+    regs: [],
     events: Object.values(ctx.events),
     gateways: Object.values(ctx.gateways),
     refs: Object.values(ctx.references),
     approvals: [],
     enums: Object.values(ctx.enums),
     vars: Object.values(ctx.variables),
-    // MMEL 0.1 constructs missing from earlier parser versions
     notes: [],
     tables: Object.values(ctx.tables),
     figures: Object.values(ctx.figures),
     links: Object.values(ctx.links),
     mapProfiles: Object.values(ctx.mapProfiles),
     viewProfiles: Object.values(ctx.viewProfiles),
-    // Primmel extensions
     forms: Object.values(ctx.forms),
     subforms: Object.values(ctx.subforms),
-    symbols: Object.values(ctx.symbols),
-    calculations: Object.values(ctx.calculations),
+    symbols: [],
+    calculations: [],
     stateMachines: Object.values(ctx.stateMachines),
     root: null,
   };
 
-  // Resolve registries (needed before process resolution)
-  for (const [id, item] of Object.entries(ctx.registers)) {
-    if (resolvers.registers) {
-      try { resolveRelations('registers', id, item as any); } catch(e) {}
-    }
-  }
+  // Resolve order matters: pages reference processes/approvals/events/gateways,
+  // so those must be cached in their resolved form before pages run.
+  resolveField(ctx, resolvers, 'dataClasses', standard.dataclasses);
+  resolveField(ctx, resolvers, 'registers', standard.regs);
+  resolveField(ctx, resolvers, 'provisions', standard.provisions);
+  resolveField(ctx, resolvers, 'processes', standard.processes);
+  resolveField(ctx, resolvers, 'approvals', standard.approvals);
+  resolveField(ctx, resolvers, 'notes', standard.notes);
+  resolveField(ctx, resolvers, 'symbols', standard.symbols);
+  resolveField(ctx, resolvers, 'calculations', standard.calculations);
+  resolveField(ctx, resolvers, 'pages', standard.pages);
 
-  for (const [id, item] of Object.entries(ctx.provisions)) {
-    standard.provisions.push(resolveRelations('provisions', id, item));
-  }
-
-  for (const [id, item] of Object.entries(ctx.notes)) {
-    if (resolvers.notes) {
-      standard.notes.push(resolveRelations('notes', id, item));
-    } else {
-      // Inline default resolver: resolve reference list
-      const resolved = { ...item, ref: [] };
-      for (const refId of item._relations.ref) {
-        resolved.ref.push(resolveFromContext(ctx, 'references', refId));
-      }
-      delete resolved._relations;
-      ctx.notes[id] = resolved;
-      standard.notes.push(resolved);
-    }
-  }
-
-  // Resolve subprocess root reference
+  // Root is a single page reference — look it up after pages are resolved.
   if (ctx.root) {
-    const rootPage = ctx.pages[ctx.root];
-    standard.root = rootPage ? ((rootPage as any).content ?? rootPage) : null;
-  }
-
-  // Resolve processes (already resolvable)
-  for (const [id, item] of Object.entries(ctx.processes)) {
-    if (resolvers.processes) {
-      standard.processes.push(resolveRelations('processes', id, item));
-    } else {
-      standard.processes.push((item as any).content ?? item);
-    }
-  }
-
-  // Resolve approvals
-  for (const [id, item] of Object.entries(ctx.approvals)) {
-    if (resolvers.approvals) {
-      standard.approvals.push(resolveRelations('approvals', id, item));
-    } else {
-      standard.approvals.push((item as any).content ?? item);
-    }
+    const root = ctx.pages[ctx.root];
+    standard.root = root ?? null;
   }
 
   return standard;
+}
+
+function resolveField(
+  ctx: ParseContext,
+  resolvers: ResolverConfiguration,
+  field: keyof ParseContext,
+  out: unknown[]
+) {
+  const cfg = resolvers[field];
+  if (!cfg) {
+    return;
+  }
+  const table = ctx[field] as Record<string, unknown>;
+  for (const [id, item] of Object.entries(table)) {
+    const resolved = cfg.resolve(ctx, item as never) as {
+      _relations?: unknown;
+    };
+    if (resolved === undefined) {
+      continue;
+    }
+    delete resolved._relations;
+    table[id] = resolved;
+    out.push(resolved);
+  }
 }

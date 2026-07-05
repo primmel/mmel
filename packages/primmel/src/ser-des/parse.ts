@@ -1,9 +1,19 @@
 import tokenize from './tokenize';
 import { ParseContext, ParserConfiguration } from './types';
 
+export interface ParseOptions {
+  /**
+   * When true, an unrecognized top-level keyword throws immediately.
+   * When false (default), unknown keywords are silently skipped for
+   * forward compatibility with newer MMEL/Primmel revisions.
+   */
+  strict?: boolean;
+}
+
 export default function parse(
   mmelString: string,
-  parsers: ParserConfiguration
+  parsers: ParserConfiguration,
+  options: ParseOptions = {}
 ): ParseContext {
   let ctx: ParseContext = {
     root: '',
@@ -42,14 +52,31 @@ export default function parse(
     const cfg = parsers[keyword];
 
     if (!cfg) {
-      // Skip unknown keywords (forward compatibility)
+      if (options.strict) {
+        throw new Error(
+          `Unknown keyword "${keyword}" at token ${i}. Use lenient mode (default) to skip unknown keywords.`
+        );
+      }
+      // Lenient: skip unknown keywords for forward compatibility.
       continue;
     }
 
     let updateCtx: (ctx: ParseContext) => ParseContext;
     if (cfg.takesID) {
+      if (i + 1 > token.length) {
+        throw new Error(
+          `Keyword "${keyword}" expects an ID and payload, but only ${
+            token.length - i + 1
+          } token(s) remain.`
+        );
+      }
       updateCtx = cfg.parse(token[i++], token[i++]);
     } else {
+      if (i >= token.length) {
+        throw new Error(
+          `Keyword "${keyword}" expects a payload, but no tokens remain.`
+        );
+      }
       updateCtx = cfg.parse(token[i++]);
     }
 

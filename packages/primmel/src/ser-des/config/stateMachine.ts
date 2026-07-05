@@ -19,7 +19,7 @@ export const parseStateMachine: Parser = function (entityName, data) {
       const command: string = t[i++];
       if (i < t.length) {
         if (command === 'initial') {
-          result.initialState = removePackage(t[i++]);
+          result.initialState = t[i++];
         } else if (command === 'states') {
           const stateBlock = removePackage(t[i++]);
           for (const s of stateBlock.split(/\s+/).filter(s => s.length > 0)) {
@@ -29,13 +29,17 @@ export const parseStateMachine: Parser = function (entityName, data) {
           // transition <From> -> <To> [action <ActionName>] { ... }
           const from = t[i++];
           // Expect '->'
-          if (i < t.length && (t[i] === '->' || t[i] === '→')) i++;
+          if (i < t.length && (t[i] === '->' || t[i] === '→')) {
+            i++;
+          }
           const to = i < t.length ? t[i++] : '';
           let actionName = '';
           // Optional 'action <Name>' before block
           if (i < t.length && t[i] === 'action') {
             i++;
-            if (i < t.length) actionName = t[i++];
+            if (i < t.length) {
+              actionName = t[i++];
+            }
           }
           let guard = '';
           const cascades: Cascade[] = [];
@@ -47,8 +51,9 @@ export const parseStateMachine: Parser = function (entityName, data) {
             while (j < bt.length) {
               const cmd = bt[j++];
               if (j < bt.length) {
-                if (cmd === 'guard') guard = removePackage(bt[j++]);
-                else if (cmd === 'cascade') {
+                if (cmd === 'guard') {
+                  guard = removePackage(bt[j++]);
+                } else if (cmd === 'cascade') {
                   const target = bt[j++];
                   if (j < bt.length) {
                     const cascadeBlock = removePackage(bt[j++]);
@@ -62,7 +67,14 @@ export const parseStateMachine: Parser = function (entityName, data) {
               }
             }
           }
-          const trans: Transition = { from, to, actionName, guard, cascades, referenceIds };
+          const trans: Transition = {
+            from,
+            to,
+            actionName,
+            guard,
+            cascades,
+            referenceIds,
+          };
           result.transitions.push(trans);
         } else if (command === 'reference') {
           result.referenceIds.push(...tokenizePackage(t[i++]));
@@ -70,12 +82,17 @@ export const parseStateMachine: Parser = function (entityName, data) {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: state_machine. Entity ${entityName}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: state_machine. Entity ${entityName}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, stateMachines: { ...ctx.stateMachines, [entityName]: result } });
+  return ctx => {
+    ctx.stateMachines[entityName] = result;
+    return ctx;
+  };
 };
 
 function parseCascade(target: string, block: string): Cascade {
@@ -85,15 +102,18 @@ function parseCascade(target: string, block: string): Cascade {
   while (i < t.length) {
     const cmd = t[i++];
     if (i < t.length) {
-      if (cmd === 'where') cascade.where = removePackage(t[i++]);
-      else if (cmd === 'set') {
+      if (cmd === 'where') {
+        cascade.where = removePackage(t[i++]);
+      } else if (cmd === 'set') {
         const setBlock = removePackage(t[i++]);
         const st = tokenizePackage(setBlock);
         let j = 0;
         while (j < st.length) {
           const field = st[j++];
           if (j < st.length) {
-            if (st[j] === ':') j++;
+            if (st[j] === ':') {
+              j++;
+            }
             if (j < st.length) {
               const value = removePackage(st[j++]);
               const setEntry: CascadeSet = { field, value };
@@ -114,20 +134,30 @@ export const dumpStateMachine: Dumper<StateMachine> = function (sm) {
   out += '  initial ' + sm.initialState + '\n';
   if (sm.states.length > 0) {
     out += '  states {\n';
-    for (const s of sm.states) out += '    ' + s.name + '\n';
+    for (const s of sm.states) {
+      out += '    ' + s.name + '\n';
+    }
     out += '  }\n';
   }
   for (const t of sm.transitions) {
     out += '  transition ' + t.from + ' -> ' + t.to;
-    if (t.actionName) out += ' action ' + t.actionName;
+    if (t.actionName) {
+      out += ' action ' + t.actionName;
+    }
     out += ' {\n';
-    if (t.guard) out += '    guard "' + t.guard + '"\n';
+    if (t.guard) {
+      out += '    guard "' + t.guard + '"\n';
+    }
     for (const c of t.cascades) {
       out += '    cascade ' + c.targetEntity + ' {\n';
-      if (c.where) out += '      where "' + c.where + '"\n';
+      if (c.where) {
+        out += '      where "' + c.where + '"\n';
+      }
       if (c.set.length > 0) {
         out += '      set {\n';
-        for (const s of c.set) out += '        ' + s.field + ': "' + s.value + '"\n';
+        for (const s of c.set) {
+          out += '        ' + s.field + ': "' + s.value + '"\n';
+        }
         out += '      }\n';
       }
       out += '    }\n';

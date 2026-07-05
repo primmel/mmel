@@ -1,5 +1,7 @@
-import Reference from './Reference';
+import type Reference from './Reference';
 import Resolvable from './Resolvable';
+
+export type { default as Reference } from './Reference';
 
 export interface Registry {
   id: string;
@@ -14,7 +16,10 @@ export interface DataClass {
   attributes: DataAttribute[];
 }
 
-export type ResolvableDataClass = Resolvable<DataClass, 'attributes'>;
+export type ResolvableDataClass = {
+  id: string;
+  attributes: ResolveableDataAttribute[];
+};
 
 export interface DataAttribute {
   id: string;

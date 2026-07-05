@@ -29,7 +29,10 @@ export const parseReference: Parser = (id: string, data: string) => {
     }
   }
 
-  return ctx => ({ ...ctx, references: { ...ctx.references, [id]: ref } });
+  return ctx => {
+    ctx.references[id] = ref;
+    return ctx;
+  };
 };
 
 export const dumpReference: Dumper<Reference> = function (ref) {

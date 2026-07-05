@@ -26,18 +26,27 @@ export const parseViewProfile: Parser = function (id, data) {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: view_profile. ID ${id}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: view_profile. ID ${id}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, viewProfiles: { ...ctx.viewProfiles, [id]: result } });
+  return ctx => {
+    ctx.viewProfiles[id] = result;
+    return ctx;
+  };
 };
 
 export const dumpViewProfile: Dumper<ViewProfile> = function (vp) {
   let out = 'view_profile ' + vp.id + ' {\n';
-  if (vp.description) out += '  description "' + vp.description + '"\n';
-  if (vp.roles.length > 0) out += '  roles ' + vp.roles.join(' ') + '\n';
+  if (vp.description) {
+    out += '  description "' + vp.description + '"\n';
+  }
+  if (vp.roles.length > 0) {
+    out += '  roles ' + vp.roles.join(' ') + '\n';
+  }
   if (vp.visibleElements.length > 0) {
     out += '  visible ' + vp.visibleElements.join(' ') + '\n';
   }

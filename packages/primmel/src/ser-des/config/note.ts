@@ -2,7 +2,8 @@ import type { Dumper, Parser, Resolver } from '../types';
 import { removePackage, tokenizePackage } from '../tokenize';
 import type Note from '../../types/Note';
 import type { NoteType } from '../../types/Note';
-import { ResolvableNote } from '../../types/Note';
+import type { ResolvableNote } from '../../types/Note';
+import type Reference from '../../types/Reference';
 import { resolveFromContext } from '../resolve';
 
 const VALID_NOTE_TYPES: NoteType[] = ['NOTE', 'CAUTION', 'WARNING'];
@@ -28,7 +29,9 @@ export const parseNote: Parser = function (id, data) {
           const v = t[i++] as NoteType;
           if (!VALID_NOTE_TYPES.includes(v)) {
             throw new Error(
-              `Parsing error: note. ID ${id}: Unknown type ${v} (valid: ${VALID_NOTE_TYPES.join(', ')})`
+              `Parsing error: note. ID ${id}: Unknown type ${v} (valid: ${VALID_NOTE_TYPES.join(
+                ', '
+              )})`
             );
           }
           result.type = v;
@@ -40,20 +43,31 @@ export const parseNote: Parser = function (id, data) {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: note. ID ${id}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: note. ID ${id}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, notes: { ...ctx.notes, [id]: result } });
+  return ctx => {
+    ctx.notes[id] = result;
+    return ctx;
+  };
 };
 
-export const resolveNote: Resolver<Note, ResolvableNote> = function (ctx, unresolved) {
-  const resolved: Note = { ...unresolved, ref: [] };
+export const resolveNote: Resolver<Note, ResolvableNote> = function (
+  ctx,
+  unresolved
+) {
+  const ref: Reference[] = [];
   for (const id of unresolved._relations.ref) {
-    resolved.ref.push(resolveFromContext(ctx, 'references', id));
+    const r = resolveFromContext<Reference>(ctx, 'references', id);
+    if (r !== undefined) {
+      ref.push(r);
+    }
   }
-  return resolved;
+  return { ...unresolved, ref };
 };
 
 export const dumpNote: Dumper<Note> = function (n) {
@@ -62,7 +76,9 @@ export const dumpNote: Dumper<Note> = function (n) {
   out += '  message "' + n.message + '"\n';
   if (n.ref.length > 0) {
     out += '  reference {\n';
-    for (const r of n.ref) out += '    ' + r.id + '\n';
+    for (const r of n.ref) {
+      out += '    ' + r.id + '\n';
+    }
     out += '  }\n';
   }
   out += '}\n';

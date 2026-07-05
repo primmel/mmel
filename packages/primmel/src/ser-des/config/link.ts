@@ -18,11 +18,17 @@ export const parseLink: Parser = function (id, data) {
           const v = t[i++] as LinkKind;
           if (!VALID_LINK_KINDS.includes(v)) {
             throw new Error(
-              `Parsing error: link. ID ${id}: Unknown kind ${v} (valid: ${VALID_LINK_KINDS.join(', ')})`
+              `Parsing error: link. ID ${id}: Unknown kind ${v} (valid: ${VALID_LINK_KINDS.join(
+                ', '
+              )})`
             );
           }
           result.kind = v;
-        } else if (command === 'target' || command === 'path' || command === 'url') {
+        } else if (
+          command === 'target' ||
+          command === 'path' ||
+          command === 'url'
+        ) {
           result.target = removePackage(t[i++]);
         } else if (command === 'namespace' || command === 'ns') {
           result.namespace = removePackage(t[i++]);
@@ -30,19 +36,26 @@ export const parseLink: Parser = function (id, data) {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: link. ID ${id}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: link. ID ${id}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, links: { ...ctx.links, [id]: result } });
+  return ctx => {
+    ctx.links[id] = result;
+    return ctx;
+  };
 };
 
 export const dumpLink: Dumper<Link> = function (l) {
   let out = 'link ' + l.id + ' {\n';
   out += '  type ' + l.kind + '\n';
   out += '  target "' + l.target + '"\n';
-  if (l.namespace) out += '  namespace "' + l.namespace + '"\n';
+  if (l.namespace) {
+    out += '  namespace "' + l.namespace + '"\n';
+  }
   out += '}\n';
   return out;
 };

@@ -4,7 +4,7 @@ import Resolvable from './Resolvable';
 export interface Subprocess {
   id: string;
 
-  // TODO: Rename to “children”
+  // TODO: Rename to "children"
   childs: SubprocessComponent[];
 
   edges: Edge[];
@@ -23,6 +23,10 @@ export type ResolvableSubprocess = Subprocess & {
 };
 
 export interface SubprocessComponent {
+  /* The original keyword used for this component in the .mmel source.
+     Distinct from `element`, which is the resolved Node reference (and
+     may be null when the referenced node is not present in the model). */
+  name: string;
   element: Node | null;
   x: number;
   y: number;

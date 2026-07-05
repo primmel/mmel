@@ -6,6 +6,8 @@ import {
   Subprocess,
   SubprocessComponent,
 } from '../../types/flow';
+import type Node from '../../types/Node';
+import type { ParseContext } from '../types';
 import { resolveFromContext } from '../resolve';
 import { removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser, Resolver } from '../types';
@@ -47,7 +49,10 @@ export const parseSubprocess: Parser = function (id, data) {
       }
     }
   }
-  return ctx => ({ ...ctx, pages: { ...ctx.pages, [id]: result } });
+  return ctx => {
+    ctx.pages[id] = result;
+    return ctx;
+  };
 };
 
 const parseElements: Parser<ResolvableSubprocess> = function (data: string) {
@@ -83,7 +88,7 @@ const parseData: Parser<ResolvableSubprocess> = function (data: string) {
       elements[id] = readSubprocessComponent(id, t[i++]);
     } else {
       throw new Error(
-        'Parsing error: data in subprocess. Expecting value for ' + name
+        `Parsing error: data in subprocess. Expecting value for ${name}`
       );
     }
   }
@@ -119,6 +124,7 @@ function readSubprocessComponent(
   data: string
 ): ResolvableSubprocessComponent {
   const com: ResolvableSubprocessComponent = {
+    name: elm,
     element: null,
     x: 0,
     y: 0,
@@ -138,15 +144,12 @@ function readSubprocessComponent(
         com.y = parseFloat(t[i++]);
       } else {
         throw new Error(
-          'Parsing error: components in subprocess. Element ' +
-            elm +
-            ': Unknown keyword ' +
-            keyword
+          `Parsing error: subprocess component. Element ${elm}: Unknown keyword ${keyword}`
         );
       }
     } else {
       throw new Error(
-        'Parsing error: edges in subprocess. Expecting value for ' + keyword
+        `Parsing error: subprocess component. Element ${elm}: Expecting value for ${keyword}`
       );
     }
   }
@@ -181,18 +184,12 @@ function readEdge(id: string, data: string): ResolvableEdge {
         edge._relations.to = t[i++];
       } else {
         throw new Error(
-          'Parsing error: process flow. ID ' +
-            id +
-            ': Unknown keyword ' +
-            command
+          `Parsing error: process_flow. ID ${id}: Unknown keyword ${command}`
         );
       }
     } else {
       throw new Error(
-        'Parsing error: process flow. ID ' +
-          id +
-          ': Expecting value for ' +
-          command
+        `Parsing error: process_flow. ID ${id}: Expecting value for ${command}`
       );
     }
   }
@@ -200,6 +197,74 @@ function readEdge(id: string, data: string): ResolvableEdge {
 }
 
 // Dumpers
+
+/**
+ * Resolve a parsed subprocess into its final shape.
+ *
+ * The parser stores components (elements + data) and edges inside
+ * `_relations` rather than on the top-level fields, and keeps a flat
+ * `_components` map keyed by element ID for edge lookups. This resolver
+ * walks each component / edge and swaps the string ID references for
+ * real objects:
+ *
+ *  - component._relations.element → a Node (process/approval/event/gateway)
+ *  - edge._relations.from / .to → a resolved SubprocessComponent
+ *
+ * Lenient: missing references leave the field null rather than throwing.
+ */
+export const resolveSubprocess: Resolver<Subprocess, ResolvableSubprocess> =
+  function (ctx, unresolved) {
+    const componentsById = new Map<string, ResolvableSubprocessComponent>();
+    for (const c of Object.values(unresolved._components)) {
+      componentsById.set(c._relations.element, c);
+    }
+
+    const resolveComponent = (
+      c: ResolvableSubprocessComponent
+    ): SubprocessComponent => ({
+      name: c.name,
+      x: c.x,
+      y: c.y,
+      element: lookupNode(ctx, c._relations.element),
+    });
+
+    const resolveEdge = (e: ResolvableEdge): Edge => {
+      const fromComp = e._relations.from
+        ? componentsById.get(e._relations.from)
+        : undefined;
+      const toComp = e._relations.to
+        ? componentsById.get(e._relations.to)
+        : undefined;
+      return {
+        id: e.id,
+        description: e.description,
+        condition: e.condition,
+        from: fromComp ? resolveComponent(fromComp) : null,
+        to: toComp ? resolveComponent(toComp) : null,
+      };
+    };
+
+    return {
+      id: unresolved.id,
+      childs: unresolved._relations.childs.map(resolveComponent),
+      edges: unresolved._relations.edges.map(resolveEdge),
+      data: unresolved._relations.data.map(resolveComponent),
+    };
+  };
+
+/**
+ * Look up a Node by ID across every construct that can appear as a
+ * subprocess element. Returns null when the ID is unknown (lenient).
+ */
+function lookupNode(ctx: ParseContext, id: string): Node | null {
+  const found =
+    resolveFromContext<Node>(ctx, 'processes', id) ??
+    resolveFromContext<Node>(ctx, 'approvals', id) ??
+    resolveFromContext<Node>(ctx, 'events', id) ??
+    resolveFromContext<Node>(ctx, 'gateways', id) ??
+    null;
+  return found;
+}
 
 export const dumpSubprocess: Dumper<Subprocess> = function (sub) {
   let out: string = 'subprocess ' + sub.id + ' {\n';
@@ -223,10 +288,11 @@ export const dumpSubprocess: Dumper<Subprocess> = function (sub) {
 };
 
 function dumpSubprocessComponent(com: SubprocessComponent): string {
-  if (com.element === null) {
-    return '';
-  }
-  let out: string = '    ' + com.element.id + ' {\n';
+  // Components are always emitted, even when element is null — data
+  // components in particular often have no Node reference. Use the
+  // preserved source name as the key.
+  const key = com.element?.id ?? com.name;
+  let out: string = '    ' + key + ' {\n';
   out += '      x ' + com.x + '\n';
   out += '      y ' + com.y + '\n';
   out += '    }\n';

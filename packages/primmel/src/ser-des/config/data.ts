@@ -1,9 +1,9 @@
-// @ts-nocheck — pre-existing type issues, not blocking for npm publish
 import {
   DataAttribute,
   DataClass,
   Enum,
   EnumValue,
+  Reference,
   Registry,
   ResolvableDataClass,
   ResolvableRegistry,
@@ -39,7 +39,10 @@ export const parseEnum: Parser = (id: string, data: string) => {
     }
   }
 
-  return ctx => ({ ...ctx, enums: { ...ctx.enums, [id]: result } });
+  return ctx => {
+    ctx.enums[id] = result;
+    return ctx;
+  };
 };
 
 const parseEnumValue = (id: string, data: string) => {
@@ -98,17 +101,16 @@ export const parseRegistry: Parser = function (id, data) {
       }
     }
   }
-  return ctx => ({ ...ctx, registers: { ...ctx.registers, [id]: result } });
+  return ctx => {
+    ctx.registers[id] = result;
+    return ctx;
+  };
 };
 
-// @ts-ignore - pre-existing: Parser type incompatibility
 export const parseDataClass: Parser = function (id, data) {
   const result: ResolvableDataClass = {
     id: id,
     attributes: [],
-    _relations: {
-      attributes: [],
-    },
   };
 
   if (data !== '') {
@@ -118,9 +120,7 @@ export const parseDataClass: Parser = function (id, data) {
       const basic: string = t[i++];
       if (i < t.length) {
         const details: string = t[i++];
-        result._relations.attributes.push(
-          parseDataAttribute(basic.trim(), details)
-        );
+        result.attributes.push(parseDataAttribute(basic.trim(), details));
       } else {
         throw new Error(
           `Parsing error: class. ID ${id}: Expecting { after ${basic}`
@@ -128,10 +128,16 @@ export const parseDataClass: Parser = function (id, data) {
       }
     }
   }
-  return ctx => ({ ...ctx, dataClasses: { ...ctx.dataClasses, [id]: result } });
+  return ctx => {
+    ctx.dataClasses[id] = result;
+    return ctx;
+  };
 };
 
-export const parseDataAttribute: Parser = function (basic, details) {
+const parseDataAttribute = (
+  basic: string,
+  details: string
+): ResolveableDataAttribute => {
   const result: ResolveableDataAttribute = {
     id: '',
     type: '',
@@ -177,49 +183,45 @@ export const parseDataAttribute: Parser = function (basic, details) {
         }
       } else {
         throw new Error(
-          `Parsing error: process. ID ${result.id}: Expecting value for ${keyword}`
+          `Parsing error: data attribute. ID ${result.id}: Expecting value for ${keyword}`
         );
       }
     }
   }
-  return ctx => ({
-    ...ctx,
-    dataClasses: { ...ctx.dataClasses, [result.id]: result },
-  });
+  return result;
 };
 
 export const resolveDataClass: Resolver<DataClass, ResolvableDataClass> =
   function (ctx, unresolved) {
-    const p = { ...unresolved };
-    for (const attribute of unresolved._relations.attributes) {
-      p.attributes.push(resolveFromContext(ctx, 'registers', attribute));
-    }
-    return p;
+    const attributes: DataAttribute[] = unresolved.attributes.map(attr => {
+      const resolved: DataAttribute = { ...attr, ref: [] };
+      for (const id of attr._relations.ref) {
+        const r = resolveFromContext<Reference>(ctx, 'references', id);
+        if (r !== undefined) {
+          resolved.ref.push(r);
+        }
+      }
+      return resolved;
+    });
+    return { id: unresolved.id, attributes };
   };
 
 export const resolveRegistry: Resolver<Registry, ResolvableRegistry> =
   function (ctx, unresolved) {
-    const p = { ...unresolved };
-    if (unresolved._relations.data !== '') {
-      p.data = resolveFromContext(
+    const { _relations, ...rest } = unresolved;
+    const p: Registry = { ...rest, data: null };
+    if (_relations.data !== '') {
+      const dc = resolveFromContext<DataClass>(
         ctx,
         'dataClasses',
-        unresolved._relations.data
+        _relations.data
       );
+      if (dc !== undefined) {
+        p.data = dc;
+      }
     }
     return p;
   };
-
-export const resolveDataAttribute: Resolver<
-  DataAttribute,
-  ResolveableDataAttribute
-> = function (ctx, unresolved) {
-  const p = { ...unresolved };
-  for (const id of unresolved._relations.ref) {
-    p.ref.push(resolveFromContext(ctx, 'references', id));
-  }
-  return p;
-};
 
 export const dumpDataClass: Dumper<DataClass> = function (dataclass) {
   let out: string = 'class ' + dataclass.id + ' {\n';

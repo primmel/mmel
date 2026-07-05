@@ -25,14 +25,11 @@ import {
 import { dumpGateway, parseExclusiveGate } from './gateway';
 
 import { parseMetadata } from './metadata';
-import {
-  parseProcess,
-  resolveProcess,
-  dumpProcess,
-} from './process';
+import { parseProcess, resolveProcess, dumpProcess } from './process';
 import { parseProvision, resolveProvision, dumpProvision } from './provision';
 import { dumpReference, parseReference } from './reference';
 import { parseRole, dumpRole } from './role';
+import { parseSubprocess, dumpSubprocess, resolveSubprocess } from './flow';
 
 // MMEL 0.1 spec-parity parsers/dumpers
 import { dumpNote, parseNote, resolveNote } from './note';
@@ -46,12 +43,19 @@ import { dumpViewProfile, parseViewProfile } from './viewProfile';
 import { dumpForm, parseForm } from './form';
 import { dumpSubformType as dumpSubform, parseSubform } from './subform';
 import { dumpSymbol, parseSymbol, resolveSymbol } from './symbol';
-import { dumpCalculation, parseCalculation, resolveCalculation } from './calculation';
+import {
+  dumpCalculation,
+  parseCalculation,
+  resolveCalculation,
+} from './calculation';
 import { dumpStateMachine, parseStateMachine } from './stateMachine';
 
 export const PARSER_CONFIG: ParserConfiguration = {
   root: {
-    parse: token => ctx => ({ ...ctx, root: token.trim() }),
+    parse: token => ctx => {
+      ctx.root = token.trim();
+      return ctx;
+    },
   },
 
   metadata: {
@@ -113,6 +117,11 @@ export const PARSER_CONFIG: ParserConfiguration = {
     parse: parseReference,
   },
 
+  subprocess: {
+    takesID: true,
+    parse: parseSubprocess,
+  },
+
   // ── MMEL 0.1 spec-parity additions ───────────────────────────────
   note: {
     takesID: true,
@@ -171,6 +180,9 @@ export const RESOLVER_CONFIG: ResolverConfiguration = {
   },
   approvals: {
     resolve: resolveApproval,
+  },
+  pages: {
+    resolve: resolveSubprocess,
   },
   dataClasses: {
     resolve: resolveDataClass,
@@ -278,7 +290,7 @@ export const DUMPER_CONFIG: DumperConfiguration = {
   enums: dumpEnum,
   dataclasses: dumpDataClass,
   regs: dumpRegistry,
-  pages: () => '', // no-op dumper for subprocess pages
+  pages: dumpSubprocess,
   vars: dumpVariable,
   refs: dumpReference,
 

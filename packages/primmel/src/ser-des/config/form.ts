@@ -1,7 +1,12 @@
 import type { Dumper, Parser } from '../types';
 import { removePackage, tokenizePackage } from '../tokenize';
 import type Form from '../../types/Form';
-import type { FormField, ApplicabilityEntry, PassFail, SubformRef } from '../../types/Form';
+import type {
+  FormField,
+  ApplicabilityEntry,
+  PassFail,
+  SubformRef,
+} from '../../types/Form';
 
 export const parseForm: Parser = function (id, data) {
   const result: Form = {
@@ -55,12 +60,17 @@ export const parseForm: Parser = function (id, data) {
           i++; // forward-compatible: skip unknown keyword value
         }
       } else {
-        throw new Error(`Parsing error: form. ID ${id}: Expecting value for ${command}`);
+        throw new Error(
+          `Parsing error: form. ID ${id}: Expecting value for ${command}`
+        );
       }
     }
   }
 
-  return ctx => ({ ...ctx, forms: { ...ctx.forms, [id]: result } });
+  return ctx => {
+    ctx.forms[id] = result;
+    return ctx;
+  };
 };
 
 function parseApplicability(block: string): ApplicabilityEntry[] {
@@ -69,8 +79,12 @@ function parseApplicability(block: string): ApplicabilityEntry[] {
   let i = 0;
   while (i < t.length) {
     const dimension = t[i++];
-    if (i >= t.length) break;
-    if (t[i] === ':') i++;
+    if (i >= t.length) {
+      break;
+    }
+    if (t[i] === ':') {
+      i++;
+    }
     if (i < t.length) {
       const valueBlock = removePackage(t[i++]);
       // valueBlock is `[A, B]` or `{ A: 5, B: 5 }`
@@ -83,9 +97,14 @@ function parseApplicability(block: string): ApplicabilityEntry[] {
         // Mapping form
         const inner = trimmed.slice(1, -1);
         const mapping: Record<string, string | number> = {};
-        for (const pair of inner.split(/[,\n]+/).map(s => s.trim()).filter(s => s)) {
+        for (const pair of inner
+          .split(/[,\n]+/)
+          .map(s => s.trim())
+          .filter(s => s)) {
           const m = pair.match(/^(\w+)\s*:\s*(.+)$/);
-          if (m) mapping[m[1]] = m[2].trim();
+          if (m) {
+            mapping[m[1]] = m[2].trim();
+          }
         }
         entries.push({ dimension, values: [], mapping });
       } else {
@@ -104,9 +123,13 @@ function parsePassFail(block: string): PassFail {
   while (i < t.length) {
     const cmd = t[i++];
     if (i < t.length) {
-      if (cmd === 'criteria') pf.criteria = removePackage(t[i++]);
-      else if (cmd === 'pass_if') pf.passIf = removePackage(t[i++]);
-      else removePackage(t[i++]);
+      if (cmd === 'criteria') {
+        pf.criteria = removePackage(t[i++]);
+      } else if (cmd === 'pass_if') {
+        pf.passIf = removePackage(t[i++]);
+      } else {
+        removePackage(t[i++]);
+      }
     }
   }
   return pf;
@@ -140,17 +163,27 @@ function parseFormField(name: string, block: string): FormField {
     while (i < t.length) {
       const cmd = t[i++];
       if (i < t.length) {
-        if (cmd === 'label') field.label = removePackage(t[i++]);
-        else if (cmd === 'definition') field.definition = removePackage(t[i++]);
-        else if (cmd === 'unit') field.unit = removePackage(t[i++]);
-        else if (cmd === 'required') field.required = removePackage(t[i++]) === 'true';
-        else if (cmd === 'measurement_method') field.measurementMethod = removePackage(t[i++]);
-        else if (cmd === 'calculation') field.calculationId = removePackage(t[i++]);
-        else if (cmd === 'calculation_bindings') removePackage(t[i++]);
-        else if (cmd === 'derivation') field.derivation = removePackage(t[i++]);
-        else if (cmd === 'evaluation') removePackage(t[i++]);
-        else if (cmd === 'values') field.values = tokenizePackage(t[i++]);
-        else if (cmd === 'default') {
+        if (cmd === 'label') {
+          field.label = removePackage(t[i++]);
+        } else if (cmd === 'definition') {
+          field.definition = removePackage(t[i++]);
+        } else if (cmd === 'unit') {
+          field.unit = removePackage(t[i++]);
+        } else if (cmd === 'required') {
+          field.required = removePackage(t[i++]) === 'true';
+        } else if (cmd === 'measurement_method') {
+          field.measurementMethod = removePackage(t[i++]);
+        } else if (cmd === 'calculation') {
+          field.calculationId = removePackage(t[i++]);
+        } else if (cmd === 'calculation_bindings') {
+          removePackage(t[i++]);
+        } else if (cmd === 'derivation') {
+          field.derivation = removePackage(t[i++]);
+        } else if (cmd === 'evaluation') {
+          removePackage(t[i++]);
+        } else if (cmd === 'values') {
+          field.values = tokenizePackage(t[i++]);
+        } else if (cmd === 'default') {
           field.defaultValue = removePackage(t[i++]);
           field.hasDefault = true;
         } else if (cmd === 'min_items' || cmd === 'max_items') {
@@ -211,8 +244,12 @@ function parseSubformRef(subformId: string, block: string): SubformRef {
           while (j < pt.length) {
             const key = pt[j++];
             if (j < pt.length) {
-              if (pt[j] === ':') j++;
-              if (j < pt.length) ref.parameters[key] = removePackage(pt[j++]);
+              if (pt[j] === ':') {
+                j++;
+              }
+              if (j < pt.length) {
+                ref.parameters[key] = removePackage(pt[j++]);
+              }
             }
           }
         } else if (cmd === 'applicability') {
@@ -229,16 +266,26 @@ function parseSubformRef(subformId: string, block: string): SubformRef {
 export const dumpForm: Dumper<Form> = function (f) {
   let out = 'form ' + f.id + ' {\n';
   out += '  name "' + f.name + '"\n';
-  if (f.description) out += '  description "' + f.description + '"\n';
-  if (f.dataClassId) out += '  data_class ' + f.dataClassId + '\n';
-  if (f.headerFormId) out += '  header ' + f.headerFormId + '\n';
-  if (f.conformanceProcessId) out += '  conformance_process ' + f.conformanceProcessId + '\n';
+  if (f.description) {
+    out += '  description "' + f.description + '"\n';
+  }
+  if (f.dataClassId) {
+    out += '  data_class ' + f.dataClassId + '\n';
+  }
+  if (f.headerFormId) {
+    out += '  header ' + f.headerFormId + '\n';
+  }
+  if (f.conformanceProcessId) {
+    out += '  conformance_process ' + f.conformanceProcessId + '\n';
+  }
   if (f.applicability.length > 0) {
     out += '  applicability {\n';
     for (const a of f.applicability) {
       if (a.mapping) {
         out += '    ' + a.dimension + ': { ';
-        for (const [k, v] of Object.entries(a.mapping)) out += k + ': ' + v + ' ';
+        for (const [k, v] of Object.entries(a.mapping)) {
+          out += k + ': ' + v + ' ';
+        }
         out += '}\n';
       } else {
         out += '    ' + a.dimension + ': [' + a.values.join(', ') + ']\n';
@@ -253,20 +300,33 @@ export const dumpForm: Dumper<Form> = function (f) {
       const pkeys = Object.keys(sr.parameters);
       if (pkeys.length > 0) {
         out += 'parameters { ';
-        for (const k of pkeys) out += k + ': ' + sr.parameters[k] + ' ';
+        for (const k of pkeys) {
+          out += k + ': ' + sr.parameters[k] + ' ';
+        }
         out += '} ';
       }
       out += '}\n';
     } else {
       out += '  field ' + field.name + ' { ';
-      if (field.label) out += 'label "' + field.label + '" ';
-      if (field.unit) out += 'unit "' + field.unit + '" ';
-      if (field.required) out += 'required true ';
+      if (field.label) {
+        out += 'label "' + field.label + '" ';
+      }
+      if (field.unit) {
+        out += 'unit "' + field.unit + '" ';
+      }
+      if (field.required) {
+        out += 'required true ';
+      }
       out += '}\n';
     }
   }
   if (f.passFail) {
-    out += '  pass_fail { criteria "' + f.passFail.criteria + '" pass_if "' + f.passFail.passIf + '" }\n';
+    out +=
+      '  pass_fail { criteria "' +
+      f.passFail.criteria +
+      '" pass_if "' +
+      f.passFail.passIf +
+      '" }\n';
   }
   out += '}\n';
   return out;

@@ -2,6 +2,7 @@ import type Provision from '../../types/Provision';
 import type { Dumper, Parser, Resolver } from '../types';
 import { removePackage, tokenizePackage } from '../tokenize';
 import { ResolvableProvision } from '../../types/Provision';
+import type Reference from '../../types/Reference';
 import { resolveFromContext } from '../resolve';
 
 export const parseProvision: Parser = function (id, data) {
@@ -42,16 +43,22 @@ export const parseProvision: Parser = function (id, data) {
     }
   }
 
-  return ctx => ({ ...ctx, provisions: { ...ctx.provisions, [id]: result } });
+  return ctx => {
+    ctx.provisions[id] = result;
+    return ctx;
+  };
 };
 
 export const resolveProvision: Resolver<Provision, ResolvableProvision> =
   function (ctx, unresolved) {
-    const resolved = { ...unresolved, ref: [] };
+    const ref: Reference[] = [];
     for (const id of unresolved._relations.ref) {
-      resolved.ref.push(resolveFromContext(ctx, 'references', id));
+      const r = resolveFromContext<Reference>(ctx, 'references', id);
+      if (r !== undefined) {
+        ref.push(r);
+      }
     }
-    return resolved;
+    return { ...unresolved, ref };
   };
 
 export const dumpProvision: Dumper<Provision> = function (pro) {
