@@ -1,5 +1,5 @@
 // Parser smoke test — run with: npx tsx scripts/validate-r60.mts
-import { loadFile, load } from '../packages/mmel/src/ser-des/index.ts'
+import { loadFile, load } from '../packages/primmel/src/ser-des/index.ts'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
