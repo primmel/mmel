@@ -1064,7 +1064,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.37.0":
+"eslint@npm:^9, eslint@npm:^9.37.0":
   version: 9.39.4
   resolution: "eslint@npm:9.39.4"
   dependencies:
@@ -2065,6 +2065,7 @@ __metadata:
   resolution: "primmel-monorepo@workspace:."
   dependencies:
     "@types/node": "npm:^20"
+    eslint: "npm:^9"
     gts: "npm:^7"
     tsx: "npm:^4.23.0"
     typescript: "npm:^5"

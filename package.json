@@ -6,14 +6,15 @@
   ],
   "devDependencies": {
     "@types/node": "^20",
+    "eslint": "^9",
     "gts": "^7",
     "tsx": "^4.23.0",
     "typescript": "^5"
   },
   "scripts": {
-    "lint": "gts lint",
+    "lint": "eslint .",
     "lint-clean": "gts clean",
-    "lint-fix": "gts fix",
+    "lint-fix": "eslint . --fix",
     "compile": "tsc",
     "test": "yarn workspace @primmel/primmel run test",
     "build": "yarn workspace @primmel/primmel run build",
