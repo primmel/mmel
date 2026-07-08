@@ -168,6 +168,8 @@ class Validator {
     // declared states.
     for (const sm of this.standard.stateMachines) {
       const stateNames = new Set(sm.states.map(s => s.name));
+      // `*` is the conventional wildcard for "any state" — always valid.
+      stateNames.add('*');
       for (const tr of sm.transitions) {
         if (tr.from && !stateNames.has(tr.from)) {
           this.issue(
