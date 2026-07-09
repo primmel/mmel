@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { stripWrapping, escapeString } from '../src/ser-des/tokenize'
+import { stripWrapping, escapeString, default as tokenize } from '../src/ser-des/tokenize'
 
 describe('stripWrapping', () => {
   it('returns bare IDs unchanged', () => {
@@ -44,10 +44,9 @@ describe('escapeString', () => {
     assert.equal(escapeString(''), '')
   })
 
-  it('round-trips through the tokenizer', async () => {
+  it('round-trips through the tokenizer', () => {
     // Demonstrate that escapeString output, when wrapped in quotes and
     // tokenized, recovers the original value.
-    const { default: tokenize } = await import('../src/ser-des/tokenize')
     const original = 'has "quotes" and \\ backslash'
     const dumped = '"' + escapeString(original) + '"'
     const toks = tokenize('name ' + dumped)

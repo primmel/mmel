@@ -1,4 +1,4 @@
-import { tokenizeWithPositions, type Token } from './tokenize';
+import { tokenizeWithPositions, type Token, type Position } from './tokenize';
 import { ParseContext, ParserConfiguration } from './types';
 import type { ValidationIssue } from '../validate';
 
