@@ -1,5 +1,5 @@
 import type { Dumper, Parser } from '../types';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import type Link from '../../types/Link';
 import type { LinkKind } from '../../types/Link';
 
@@ -52,9 +52,9 @@ export const parseLink: Parser = function (id, data) {
 export const dumpLink: Dumper<Link> = function (l) {
   let out = 'link ' + l.id + ' {\n';
   out += '  type ' + l.kind + '\n';
-  out += '  target "' + l.target + '"\n';
+  out += '  target "' + escapeString(l.target) + '"\n';
   if (l.namespace) {
-    out += '  namespace "' + l.namespace + '"\n';
+    out += '  namespace "' + escapeString(l.namespace) + '"\n';
   }
   out += '}\n';
   return out;

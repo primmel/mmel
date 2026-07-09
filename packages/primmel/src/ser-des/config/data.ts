@@ -12,6 +12,7 @@ import {
 } from '../../types/data';
 import { resolveFromContext } from '../resolve';
 import {
+  escapeString,
   removePackage,
   tokenizeAttributes,
   tokenizePackage,
@@ -241,7 +242,7 @@ const toDataAttributeModel = (attribute: DataAttribute) => {
     out += '[' + attribute.cardinality + ']';
   }
   out += ' {\n';
-  out += '    definition "' + attribute.definition + '"\n';
+  out += '    definition "' + escapeString(attribute.definition) + '"\n';
   if (attribute.modality !== '') {
     out += '    modality ' + attribute.modality + '\n';
   }
@@ -265,7 +266,7 @@ const toDataAttributeModel = (attribute: DataAttribute) => {
 
 const dumpEnumValue = (ev: EnumValue) => {
   let out: string = '  ' + ev.id + ' {\n';
-  out += '    definition "' + ev.value + '"\n';
+  out += '    definition "' + escapeString(ev.value) + '"\n';
   out += '  }\n';
   return out;
 };
@@ -281,7 +282,7 @@ export const dumpEnum: Dumper<Enum> = function (en) {
 
 export const dumpRegistry: Dumper<Registry> = function (reg) {
   let out: string = 'data_registry ' + reg.id + ' {\n';
-  out += '  title "' + reg.title + '"\n';
+  out += '  title "' + escapeString(reg.title) + '"\n';
   if (reg.data !== null) {
     out += '  data_class ' + reg.data.id + '\n';
   }
@@ -330,10 +331,10 @@ export const dumpVariable: Dumper<Variable> = function (v) {
     out += '  type ' + v.type + '\n';
   }
   if (v.definition !== '') {
-    out += '  definition "' + v.definition + '"\n';
+    out += '  definition "' + escapeString(v.definition) + '"\n';
   }
   if (v.description !== '') {
-    out += '  description "' + v.description + '"\n';
+    out += '  description "' + escapeString(v.description) + '"\n';
   }
   out += '}\n';
   return out;

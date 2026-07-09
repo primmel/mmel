@@ -1,5 +1,5 @@
 import type { Dumper, Parser, Resolver } from '../types';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import type Note from '../../types/Note';
 import type { NoteType } from '../../types/Note';
 import type { ResolvableNote } from '../../types/Note';
@@ -73,7 +73,7 @@ export const resolveNote: Resolver<Note, ResolvableNote> = function (
 export const dumpNote: Dumper<Note> = function (n) {
   let out = 'note ' + n.id + ' {\n';
   out += '  type ' + n.type + '\n';
-  out += '  message "' + n.message + '"\n';
+  out += '  message "' + escapeString(n.message) + '"\n';
   if (n.ref.length > 0) {
     out += '  reference {\n';
     for (const r of n.ref) {

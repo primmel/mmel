@@ -1,6 +1,6 @@
 import type Provision from '../../types/Provision';
 import type { Dumper, Parser, Resolver } from '../types';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import { ResolvableProvision } from '../../types/Provision';
 import type Reference from '../../types/Reference';
 import { resolveFromContext } from '../resolve';
@@ -66,7 +66,7 @@ export const dumpProvision: Dumper<Provision> = function (pro) {
   pro.subject.forEach((value: string, key: string) => {
     out += '  ' + key + ' ' + value + '\n';
   });
-  out += '  condition "' + pro.condition + '"\n';
+  out += '  condition "' + escapeString(pro.condition) + '"\n';
   if (pro.modality !== '') {
     out += '  modality ' + pro.modality + '\n';
   }

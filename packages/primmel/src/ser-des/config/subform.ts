@@ -1,5 +1,5 @@
 import type { Dumper, Parser } from '../types';
-import { removePackage, stripWrapping, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, stripWrapping, tokenizePackage } from '../tokenize';
 import type Subform from '../../types/Subform';
 import type { ParameterDecl } from '../../types/Subform';
 import type { FormField } from '../../types/Form';
@@ -192,14 +192,14 @@ export const dumpSubformType: Dumper<Subform> = function (sf) {
   let out = 'subform ' + sf.id + ' {\n';
   out += '  type ' + sf.shapeType + '\n';
   if (sf.description) {
-    out += '  description "' + sf.description + '"\n';
+    out += '  description "' + escapeString(sf.description) + '"\n';
   }
   if (sf.parameters.length > 0) {
     out += '  parameters {\n';
     for (const p of sf.parameters) {
       let line = '    ' + p.name + ' : ' + p.type + ' { ';
       if (p.description) {
-        line += 'description "' + p.description + '" ';
+        line += 'description "' + escapeString(p.description) + '" ';
       }
       if (p.hasDefault) {
         line += 'default ' + p.defaultValue + ' ';
@@ -219,10 +219,10 @@ export const dumpSubformType: Dumper<Subform> = function (sf) {
   for (const f of sf.fields) {
     out += '  field ' + f.name + ' { ';
     if (f.label) {
-      out += 'label "' + f.label + '" ';
+      out += 'label "' + escapeString(f.label) + '" ';
     }
     if (f.unit) {
-      out += 'unit "' + f.unit + '" ';
+      out += 'unit "' + escapeString(f.unit) + '" ';
     }
     if (f.required) {
       out += 'required true ';

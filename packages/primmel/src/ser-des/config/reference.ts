@@ -1,5 +1,5 @@
 import type { Dumper, Parser } from '../types';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import Reference from '../../types/Reference';
 
 export const parseReference: Parser = (id: string, data: string) => {
@@ -37,8 +37,8 @@ export const parseReference: Parser = (id: string, data: string) => {
 
 export const dumpReference: Dumper<Reference> = function (ref) {
   let out: string = 'reference ' + ref.id + ' {\n';
-  out += '  document "' + ref.document + '"\n';
-  out += '  clause "' + ref.clause + '"\n';
+  out += '  document "' + escapeString(ref.document) + '"\n';
+  out += '  clause "' + escapeString(ref.clause) + '"\n';
   out += '}\n';
   return out;
 };
