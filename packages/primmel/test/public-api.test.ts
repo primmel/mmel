@@ -1,8 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-// @ts-expect-error — tsx allows the .ts extension; tsc doesn't. The runtime
-// needs the explicit extension to resolve the source file in ESM mode.
-import { load, dump, loadFile } from '../index.ts';
+import { load, dump, loadFile } from '../src/ser-des/index';
 
 describe('public API surface', () => {
   it('exposes load, loadFile, dump as functions', () => {

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { load, dump } from '../index.ts';
+import { load, dump } from '../src/ser-des/index';
 
 describe('term keyword', () => {
   it('parses a minimal term', () => {
