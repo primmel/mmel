@@ -43,13 +43,17 @@ export function parseFormField(name: string, block: string): FormField {
     subformRef: null,
   };
 
-  if (!block || !block.trim()) return field;
+  if (!block || !block.trim()) {
+    return field;
+  }
 
   const t = tokenizePackage(block);
   let i = 0;
   while (i < t.length) {
     const cmd = t[i++];
-    if (i >= t.length) break;
+    if (i >= t.length) {
+      break;
+    }
     if (cmd === 'label') {
       field.label = removePackage(t[i++]);
     } else if (cmd === 'definition') {

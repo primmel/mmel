@@ -124,7 +124,11 @@ export const PARSER_CONFIG: ParserConfiguration = {
   start_event: { takesID: true, parse: parseStartEvent, field: 'events' },
   end_event: { takesID: true, parse: parseEndEvent, field: 'events' },
   signalcatch: { takesID: true, parse: parseSignalCatchEvent, field: 'events' },
-  signal_catch_event: { takesID: true, parse: parseSignalCatchEvent, field: 'events' },
+  signal_catch_event: {
+    takesID: true,
+    parse: parseSignalCatchEvent,
+    field: 'events',
+  },
   timer: { takesID: true, parse: parseTimerEvent, field: 'events' },
   timer_event: { takesID: true, parse: parseTimerEvent, field: 'events' },
 

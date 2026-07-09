@@ -14,7 +14,10 @@ describe('term keyword', () => {
     assert.equal(s.terms.length, 1);
     assert.equal(s.terms[0].id, 'maximum-capacity');
     assert.equal(s.terms[0].label, 'Maximum capacity');
-    assert.equal(s.terms[0].definition, 'The maximum load that a load cell is designed to measure');
+    assert.equal(
+      s.terms[0].definition,
+      'The maximum load that a load cell is designed to measure',
+    );
     assert.equal(s.terms[0].symbolId, '');
     assert.deepEqual(s.terms[0].referenceIds, []);
   });

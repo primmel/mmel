@@ -1,5 +1,10 @@
 import type { Dumper, Parser } from '../types';
-import { escapeString, removePackage, stripWrapping, tokenizePackage } from '../tokenize';
+import {
+  escapeString,
+  removePackage,
+  stripWrapping,
+  tokenizePackage,
+} from '../tokenize';
 import { parseFormField } from './field-parser';
 import type Form from '../../types/Form';
 import type {

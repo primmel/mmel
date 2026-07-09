@@ -27,7 +27,9 @@ export const parseTerm: Parser = function (id, data) {
           // Strip wrapping quotes if present (defensive — most models use bare IDs).
           const raw = t[i++];
           result.symbolId =
-            raw.length >= 2 && raw.charAt(0) === '"' && raw.charAt(raw.length - 1) === '"'
+            raw.length >= 2 &&
+            raw.charAt(0) === '"' &&
+            raw.charAt(raw.length - 1) === '"'
               ? raw.slice(1, -1)
               : raw;
         } else if (command === 'reference') {
