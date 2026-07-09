@@ -74,7 +74,10 @@ class Validator {
       ...this.standard.processes.map(item => ({ kind: 'process', item })),
       ...this.standard.forms.map(item => ({ kind: 'form', item })),
       ...this.standard.symbols.map(item => ({ kind: 'symbol', item })),
-      ...this.standard.calculations.map(item => ({ kind: 'calculation', item })),
+      ...this.standard.calculations.map(item => ({
+        kind: 'calculation',
+        item,
+      })),
     ];
     for (const { kind, item } of allItems) {
       if (!item.id || item.id.trim() === '') {
@@ -94,7 +97,10 @@ class Validator {
     const subformIds = new Set(this.standard.subforms.map(s => s.id));
 
     for (const form of this.standard.forms) {
-      if (form.conformanceProcessId && !procIds.has(form.conformanceProcessId)) {
+      if (
+        form.conformanceProcessId &&
+        !procIds.has(form.conformanceProcessId)
+      ) {
         this.issue(
           'error',
           'form-conformance-process-missing',

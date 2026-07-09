@@ -89,7 +89,9 @@ export function tokenizeWithPositions(x: string): Token[] {
         }
         value += c;
         advance(1);
-        if (c === '"') break;
+        if (c === '"') {
+          break;
+        }
       }
     } else if (char === '{') {
       let depth = 1;
@@ -109,12 +111,18 @@ export function tokenizeWithPositions(x: string): Token[] {
             }
             value += sc;
             advance(1);
-            if (sc === '"') break;
+            if (sc === '"') {
+              break;
+            }
           }
           continue;
         }
-        if (c === '{') depth++;
-        if (c === '}') depth--;
+        if (c === '{') {
+          depth++;
+        }
+        if (c === '}') {
+          depth--;
+        }
         value += c;
         advance(1);
       }
@@ -164,7 +172,9 @@ export function removePackage(x: string): string {
  * matching quote-or-brace.
  */
 export function stripWrapping(x: string): string {
-  if (x.length < 2) return x;
+  if (x.length < 2) {
+    return x;
+  }
   const first = x.charAt(0);
   const last = x.charAt(x.length - 1);
   if ((first === '"' && last === '"') || (first === '{' && last === '}')) {

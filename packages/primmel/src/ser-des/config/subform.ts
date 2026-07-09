@@ -1,9 +1,8 @@
 import type { Dumper, Parser } from '../types';
-import { escapeString, removePackage, stripWrapping, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import { parseFormField as parseField } from './field-parser';
 import type Subform from '../../types/Subform';
 import type { ParameterDecl } from '../../types/Subform';
-import type { FormField } from '../../types/Form';
 
 export const parseSubform: Parser = function (id, data) {
   const result: Subform = {
@@ -115,7 +114,6 @@ function parseParameters(block: string): ParameterDecl[] {
   }
   return params;
 }
-
 
 export const dumpSubformType: Dumper<Subform> = function (sf) {
   let out = 'subform ' + sf.id + ' {\n';

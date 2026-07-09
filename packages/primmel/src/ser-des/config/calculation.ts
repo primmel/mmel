@@ -168,7 +168,12 @@ export const dumpCalculation: Dumper<Calculation> = function (c) {
     }
     out += '  }\n';
   }
-  out += '  output : ' + c.output.type + ' { unit "' + escapeString(c.output.unit) + '" }\n';
+  out +=
+    '  output : ' +
+    c.output.type +
+    ' { unit "' +
+    escapeString(c.output.unit) +
+    '" }\n';
   out += '  expression "' + escapeString(c.expression) + '"\n';
   if (c.ref.length > 0) {
     out += '  reference {\n';
