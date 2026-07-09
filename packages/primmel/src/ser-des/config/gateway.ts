@@ -1,5 +1,5 @@
 import Gateway, { ExclusiveGateway } from '../../types/Gateway';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser } from '../types';
 
 export const parseExclusiveGate: Parser = function (id, data) {
@@ -42,7 +42,7 @@ export const dumpGateway: Dumper<Gateway> = function (gate) {
 function dumpEGate(egate: ExclusiveGateway) {
   let out: string = 'exclusive_gateway ' + egate.id + ' {\n';
   if (egate.label !== '') {
-    out += '  label "' + egate.label + '"\n';
+    out += '  label "' + escapeString(egate.label) + '"\n';
   }
   out += '}\n';
   return out;

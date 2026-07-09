@@ -1,5 +1,5 @@
 import type { Dumper, Parser } from '../types';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import type Figure from '../../types/Figure';
 
 export const parseFigure: Parser = function (id, data) {
@@ -34,8 +34,8 @@ export const parseFigure: Parser = function (id, data) {
 
 export const dumpFigure: Dumper<Figure> = function (f) {
   let out = 'figure ' + f.id + ' {\n';
-  out += '  title "' + f.title + '"\n';
-  out += '  src "' + f.src + '"\n';
+  out += '  title "' + escapeString(f.title) + '"\n';
+  out += '  src "' + escapeString(f.src) + '"\n';
   out += '}\n';
   return out;
 };

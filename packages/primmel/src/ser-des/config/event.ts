@@ -4,7 +4,7 @@ import EventNode, {
   StartEvent,
   TimerEvent,
 } from '../../types/events';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser } from '../types';
 
 export const parseEndEvent: Parser = function (id, data) {
@@ -134,7 +134,7 @@ function dumpEndEvent(end: EndEvent): string {
 function dumpSignalCatchEvent(sc: SignalCatchEvent): string {
   let out: string = 'signal_catch_event ' + sc.id + ' {\n';
   if (sc.signal !== '') {
-    out += '  catch "' + sc.signal + '"\n';
+    out += '  catch "' + escapeString(sc.signal) + '"\n';
   }
   out += '}\n';
   return out;
@@ -150,7 +150,7 @@ function dumpTimerEvent(te: TimerEvent): string {
     out += '  type ' + te.type + '\n';
   }
   if (te.para !== '') {
-    out += '  para "' + te.para + '"\n';
+    out += '  para "' + escapeString(te.para) + '"\n';
   }
   out += '}\n';
   return out;

@@ -1,6 +1,6 @@
 import Approval, { ResolvableApproval } from '../../types/Approval';
 import { resolveFromContext } from '../resolve';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser, Resolver } from '../types';
 import type { Registry } from '../../types/data';
 import type Reference from '../../types/Reference';
@@ -86,7 +86,7 @@ export const resolveApproval: Resolver<Approval, ResolvableApproval> =
 
 export const dumpApproval: Dumper<Approval> = function (approval) {
   let out: string = 'approval ' + approval.id + ' {\n';
-  out += '  name "' + approval.name + '"\n';
+  out += '  name "' + escapeString(approval.name) + '"\n';
   if (approval.actor !== null) {
     out += '  actor ' + approval.actor.id + '\n';
   }

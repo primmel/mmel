@@ -9,7 +9,7 @@ import {
 import type Node from '../../types/Node';
 import type { ParseContext } from '../types';
 import { resolveFromContext } from '../resolve';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser, Resolver } from '../types';
 
 // Parsers
@@ -306,10 +306,10 @@ function dumpEdge(edge: Edge): string {
     out += '      to ' + edge.to.element.id + '\n';
   }
   if (edge.description !== '') {
-    out += '      description "' + edge.description + '"\n';
+    out += '      description "' + escapeString(edge.description) + '"\n';
   }
   if (edge.condition !== '') {
-    out += '      condition "' + edge.condition + '"\n';
+    out += '      condition "' + escapeString(edge.condition) + '"\n';
   }
   out += '    }\n';
   return out;

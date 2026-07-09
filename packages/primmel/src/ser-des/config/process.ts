@@ -1,6 +1,6 @@
 import Process, { ResolvableProcess } from '../../types/process';
 import { resolveFromContext } from '../resolve';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import { Dumper, Parser, Resolver } from '../types';
 import type { Registry } from '../../types/data';
 import type Provision from '../../types/Provision';
@@ -108,7 +108,7 @@ export const resolveProcess: Resolver<Process, ResolvableProcess> = function (
 
 export const dumpProcess: Dumper<Process> = function (process) {
   let out: string = 'process ' + process.id + ' {\n';
-  out += '  name "' + process.name + '"\n';
+  out += '  name "' + escapeString(process.name) + '"\n';
   if (process.actor !== null) {
     out += '  actor ' + process.actor.id + '\n';
   }

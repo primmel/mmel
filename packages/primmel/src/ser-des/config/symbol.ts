@@ -1,5 +1,5 @@
 import type { Dumper, Parser, Resolver } from '../types';
-import { removePackage, tokenizePackage } from '../tokenize';
+import { escapeString, removePackage, tokenizePackage } from '../tokenize';
 import type Symbol from '../../types/Symbol';
 import type { SymbolType, ResolvableSymbol } from '../../types/Symbol';
 import type Reference from '../../types/Reference';
@@ -89,16 +89,16 @@ export const resolveSymbol: Resolver<Symbol, ResolvableSymbol> = function (
 
 export const dumpSymbol: Dumper<Symbol> = function (s) {
   let out = 'symbol ' + s.id + ' {\n';
-  out += '  name "' + s.name + '"\n';
+  out += '  name "' + escapeString(s.name) + '"\n';
   if (s.definition) {
-    out += '  definition "' + s.definition + '"\n';
+    out += '  definition "' + escapeString(s.definition) + '"\n';
   }
   out += '  type ' + s.type + '\n';
   if (s.unit && s.unit !== '1') {
-    out += '  unit "' + s.unit + '"\n';
+    out += '  unit "' + escapeString(s.unit) + '"\n';
   }
   if (s.latex) {
-    out += '  latex "' + s.latex + '"\n';
+    out += '  latex "' + escapeString(s.latex) + '"\n';
   }
   if (s.values.length > 0) {
     out += '  values ' + s.values.join(' ') + '\n';
